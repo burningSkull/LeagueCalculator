@@ -1,11 +1,214 @@
-
 <html>
 	<head>
 		<script type="text/javascript">
-			var players;
 			const MIN_PLAYERS = 2;
 			const MAX_PLAYERS = 8;
 			const GAMES_PER_MATCH = 6;
+
+			var currentGroup;
+
+
+			function initGroup(group) {
+				for (var i = 0; i < group.players.length; i++) {
+					var pA = group.players[i];
+					for (var j = 0; j < group.players.length; j++) {
+						var pB = group.players[j];
+						if (pA.name != pB.name) {
+							var found = false;
+							for (var k = 0; k < group.matches.length; k++) {
+								var m = group.matches[k];
+								if ((m.p1 == pA.name && m.p2 == pB.name) || (m.p1 == pB.name && m.p2 == pA.name)) {
+									found = true;
+									break;
+								}
+							}
+							if (!found) {
+								var m = new Object();
+								m.p1 = pA.name;
+								m.p2 = pB.name;
+								m.actualResult = "Not played";
+								group.matches.push(m);
+							}
+						}
+					}
+				}
+			}
+
+			function resetPlayers(group) {
+				group.players.forEach(function(p) {
+					p.matchesPlayed = 0;
+					p.points = 0;
+					p.average = "-";
+					p._2nd = 0;
+					p._3rd = 0;
+				});
+			}
+
+			function resetMatches(group) {
+				group.matches.forEach(function(m) {
+					m.speculativeResult = m.actualResult;
+				});
+			}
+
+			function recalculateAndRedraw() {
+				var group = currentGroup;
+				resetPlayers(group);
+				parseMatchesFromHTML(group);
+				calculatePlayersAttributes(group);
+				sortPlayers(group);
+				drawMatches(group);
+				drawStandings(group);
+			}
+
+			function parseMatchesFromHTML(group) {
+				var matchesTable = document.getElementById('matchesTable');
+				var matches = new Array();
+				for (var i = 0; i < matchesTable.rows.length; i++) {
+					var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+
+					for (var j = 0; j < group.matches.length; j++) {
+						var m = group.matches[j];
+						if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
+							m.speculativeResult = matchResultElement.value;
+							break;
+						}
+					}
+				}
+			}
+
+			function calculatePlayersAttributes(group) {
+				for (var i = 0; i < group.players.length; i++) {
+					var p = group.players[i];
+					for (var j = 0; j < group.matches.length; j++) {
+						var m = group.matches[j];
+						if (m.p1 == p.name || m.p2 == p.name) {
+							if (m.speculativeResult != "Not played") {
+								p.points += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - m.speculativeResult)) * 1;
+								p.matchesPlayed++;
+								p.average = p.matchesPlayed == 0 ? "-" : (p.points / p.matchesPlayed).toFixed(1);
+							}
+						}
+					}
+				}
+
+				for (var i = 0; i < group.players.length; i++) {					
+					var p = group.players[i];
+
+					for (var j = 0; j < group.players.length; j++) {
+						if (j != i && p.points == group.players.points) {
+							for (var k = 0; k < group.matches.length; k++) {
+								var m = group.matches[k];
+								if (m.speculativeResult != "Not played" &&
+									((m.p1 == p.name && m.p2 == group.players[j].name) || 
+									(m.p2 == p.name && m.p1 == group.players[j].name))) {
+									p._2nd += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - matches[k].speculativeResult)) * 1;
+									break;
+								}
+							}
+						}
+					}
+
+					for (var j = 0; j < group.matches.length; j++) {						
+						var m = group.matches[j];
+						if (m.p1 == p.name || m.p2 == p.name) {
+							if (m.speculativeResult != "Not played") {
+								var oppName = (m.p1 == p.name) ? m.p2 : m.p1;
+								var opp;
+								for (var k = 0; k < group.players.length; k++) {
+									if (group.players[k].name == oppName) {
+										opp = group.players[k];
+										break;
+									}
+								}
+								p._3rd += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - m.speculativeResult)) * opp.points;
+							}
+						}
+					}
+				}
+			}
+
+
+
+			function sortPlayers(group) {
+				group.players = group.players.sort(function(a, b) {
+					if (a.average != b.average) {
+						return a.average < b.average;
+					} else {
+						if (a._2nd != b._2nd) {
+							return a._2nd < b._2nd;
+						} else {
+							if (a._3rd != b._3rd) {
+								return a._3rd < b._3rd;
+							} else {
+								return a.name > b.name;
+							}
+						}
+					}
+				});
+			}
+
+			function drawMatches(group) {
+				document.getElementById('matchesTableDiv').innerHTML = "<table id=\"matchesTable\"></table>";
+				var matchesTable = document.getElementById('matchesTable');
+
+				group.matches.forEach(function(m) {
+					var row = matchesTable.insertRow(matchesTable.rows.length);	
+					row.insertCell(0).innerHTML = m.p1;
+
+
+					var results = ["Not played"];
+					for (var i = 0; i <= GAMES_PER_MATCH; i += 0.5) {
+						results.push(i);
+					}
+
+					var cell = row.insertCell(1);
+					var select = document.createElement("select");
+					select.p1 = m.p1;
+					select.p2 = m.p2;
+
+					cell.appendChild(select);				
+
+					for (var i = 0; i < results.length; i++) {
+						var option = document.createElement("option");
+						option.value = results[i];
+						option.text = results[i];
+						select.appendChild(option);
+					}
+					select.value = m.speculativeResult;
+					select.setAttribute('onchange', 'recalculateAndRedraw()');
+
+					row.insertCell(2).innerHTML = m.p2;
+				});
+			}
+
+			function drawStandings(group) {
+				var playersTableHTML = "<table id=\"playersTable\"><tr>"
+					+ "<th>rank</th>"
+					+ "<th>name</th>"
+					+ "<th>average</th>"
+					+ "<th>points</th>"
+					+ "<th>#played</th>"
+					+ "<th>2nd</th>"
+					+ "<th>3rd</th>"
+					+ "</tr></table>";
+				document.getElementById('playersTableDiv').innerHTML = playersTableHTML;
+
+				var playersTable = document.getElementById('playersTable');
+				for (var i = playersTable.rows.length - 1; i > 0; i--) {
+					playersTable.deleteRow(i);
+				}
+				for (var i = 0; i < group.players.length; i++) {
+					var p = group.players[i];
+					var row = playersTable.insertRow(i + 1);
+					row.insertCell(0).innerHTML = i + 1;
+					row.insertCell(1).innerHTML = p.name; 
+					row.insertCell(2).innerHTML = p.average;
+					row.insertCell(3).innerHTML = p.points; 
+					row.insertCell(4).innerHTML = p.matchesPlayed;
+					row.insertCell(5).innerHTML = p._2nd; 
+					row.insertCell(6).innerHTML = p._3rd;
+				}
+			}
 
 
 			function checkInput() {				
@@ -36,170 +239,34 @@
 					document.getElementById('errorSpan').innerHTML = "Only showing info for the first " + MAX_PLAYERS + " players.";
 				}
 
-				playersToCheck = playersToCheck.sort();
-				players = playersToCheck.slice(0, MAX_PLAYERS);				
-
-				return true;
+				return playersToCheck.slice(0, MAX_PLAYERS);
 			}
 
-			function updatePlayersTable() {
-				var matchesTable = document.getElementById('matchesTable');
-				var matches = new Array();
-				for (var i = 0; i < matchesTable.rows.length; i++) {
-					var match = new Object();
-					var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
 
-					match.player1 = matchResultElement.player1;
-					match.player2 = matchResultElement.player2;
-					match.result = matchResultElement.value;
-					matches.push(match);
-				}
+			function customGroupLaunch() {
 
-				var playersAttrs = new Array();
-				for (var i = 0; i < players.length; i++) {
-					var playerWithAttrs = new Object();
-					playerWithAttrs.name = players[i];
-					playerWithAttrs.matchesPlayed = 0;
-					playerWithAttrs.points = 0;					
-					playerWithAttrs.average = "-";
-					playerWithAttrs._2nd = 0;	
-					playerWithAttrs._3rd = 0;
-					playersAttrs.push(playerWithAttrs);
-				}
-
-				for (var i = 0; i < playersAttrs.length; i++) {					
-					var p = playersAttrs[i];
-					for (var j = 0; j < matches.length; j++) {						
-						if (matches[j].player1 == p.name || matches[j].player2 == p.name) {
-							if (matches[j].result != "Not played") {
-								p.points += ((matches[j].player1 == p.name) ? matches[j].result : (GAMES_PER_MATCH - matches[j].result)) * 1;
-								p.matchesPlayed++;
-								p.average = p.matchesPlayed == 0 ? "-" : (p.points / p.matchesPlayed).toFixed(1);
-							}
-						}
-					}
-				}
-
-
-				for (var i = 0; i < playersAttrs.length; i++) {					
-					var p = playersAttrs[i];
-					for (var j = 0; j < matches.length; j++) {						
-						if (matches[j].player1 == p.name || matches[j].player2 == p.name) {
-							if (matches[j].result != "Not played") {
-								var oppName = (matches[j].player1 == p.name) ? matches[j].player2 : matches[j].player1;
-								var opp;
-								for (var k = 0; k < playersAttrs.length; k++) {
-									if (playersAttrs[k].name == oppName) {
-										opp = playersAttrs[k];
-										break;
-									}
-								}								
-								p._3rd += ((matches[j].player1 == p.name) ? matches[j].result : (GAMES_PER_MATCH - matches[j].result)) * opp.points;
-							}
-						}
-					}
-
-					for (var j = 0; j < playersAttrs.length; j++) {
-						if (j != i && p.points == playersAttrs[j].points) {
-							for (var k = 0; k < matches.length; k++) {
-								if (matches[k].result != "Not played" &&
-									((matches[k].player1 == p.name && matches[k].player2 == playersAttrs[j].name) || 
-									(matches[k].player2 == p.name && matches[k].player1 == playersAttrs[j].name))) {
-									p._2nd += ((matches[k].player1 == p.name) ? matches[k].result : (GAMES_PER_MATCH - matches[k].result)) * 1;
-									break;
-								}
-							}
-						}
-					}
-				}
-
-				playersAttrs = playersAttrs.sort(function(a, b) {
-						if (a.average != b.average) {
-							return a.average < b.average;
-						} else {
-							if (a._2nd != b._2nd) {
-								return a._2nd < b._2nd;
-							} else {
-								if (a._3rd != b._3rd) {
-									return a._3rd < b._3rd;
-								} else {
-									return a.name > b.name;
-								}
-							}
-						}
-					}
-				);
-
-
-				var playersTable = document.getElementById('playersTable');
-				for (var i = playersTable.rows.length - 1; i > 0; i--) {
-					playersTable.deleteRow(i);
-				}
-				for (var i = 0; i < playersAttrs.length; i++) {
-					var row = playersTable.insertRow(i + 1);
-					row.insertCell(0).innerHTML = i + 1; 
-					row.insertCell(1).innerHTML = playersAttrs[i].name; 
-					row.insertCell(2).innerHTML = playersAttrs[i].average;
-					row.insertCell(3).innerHTML = playersAttrs[i].points; 
-					row.insertCell(4).innerHTML = playersAttrs[i].matchesPlayed;
-					row.insertCell(5).innerHTML = playersAttrs[i]._2nd; 
-					row.insertCell(6).innerHTML = playersAttrs[i]._3rd;
-				}
-			}
-
-			function generateMatchInfo(player1, player2) {
-				var matchesTable = document.getElementById('matchesTable');
-				var row = matchesTable.insertRow(matchesTable.rows.length);
-				
-				row.insertCell(0).innerHTML = player1;
-
-				var results = ["Not played"];
-				for (var i = 0; i <= GAMES_PER_MATCH; i += 0.5) {
-					results.push(i);
-				}
-				var cell = row.insertCell(1);
-				var select = document.createElement("select");
-				select.player1 = player1;
-				select.player2 = player2;
-
-				cell.appendChild(select);				
-
-				for (var i = 0; i < results.length; i++) {
-					var option = document.createElement("option");
-					option.value = results[i];
-					option.text = results[i];
-					select.appendChild(option);
-				}
-				select.setAttribute('onchange', 'updatePlayersTable()');
-
-				row.insertCell(2).innerHTML = player2;
-			}
-
-			function showMatchesAndResults() {				
-				if (!checkInput()) {
+				var input = checkInput();
+				if (!input) {
 					return false;
 				}
+				currentGroup = new Object;
+				currentGroup.name = "Custom group";
+				currentGroup.players = [];
+				currentGroup.matches = [];
 
-				document.getElementById('matchesTableDiv').innerHTML = "<table id=\"matchesTable\"></table>";
-				for (var i = 0; i < players.length; i++) {
-					for (var j = i + 1; j < players.length; j++) {
-						generateMatchInfo(players[i], players[j]);
-					}		
-				}
+				input.forEach(function(playerName) {
+					var player = new Object();
+					player.name = playerName;
+					currentGroup.players.push(player);
+				});
 
-
-				var playersTableHTML = "<table id=\"playersTable\"><tr>"
-					+ "<th>rank</th>"
-					+ "<th>name</th>"
-					+ "<th>average</th>"
-					+ "<th>points</th>"
-					+ "<th>#played</th>"
-					+ "<th>2nd</th>"
-					+ "<th>3rd</th>"
-					+ "</tr></table>";
-				document.getElementById('playersTableDiv').innerHTML = playersTableHTML;
-
-				updatePlayersTable();
+				initGroup(currentGroup);
+				resetPlayers(currentGroup);
+				resetMatches(currentGroup);				
+				calculatePlayersAttributes(currentGroup);
+				sortPlayers(currentGroup);
+				drawMatches(currentGroup);
+				drawStandings(currentGroup);
 			}
 
 		</script>
@@ -211,7 +278,7 @@
 
 		<form>
 			<textarea id="playersTextArea" placeholder="Enter player names" rows="8" cols="50"></textarea>
-			<input type="button" value="Submit" onclick="showMatchesAndResults()"/>
+			<input type="button" value="Submit" onclick="customGroupLaunch()"/>
 			<span id="errorSpan"></span>
 		</form>
 
