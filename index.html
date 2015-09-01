@@ -1,0 +1,223 @@
+
+<html>
+	<head>
+		<script type="text/javascript">
+			var players;
+			const MIN_PLAYERS = 2;
+			const MAX_PLAYERS = 8;
+			const GAMES_PER_MATCH = 6;
+
+
+			function checkInput() {				
+				document.getElementById('errorSpan').innerHTML = "";
+
+				var playersToCheck = new Array();
+
+				var lines = document.getElementById('playersTextArea').value.split('\n');
+				for(var i = 0; i < lines.length; i++){
+					if (lines[i] != "") {
+						var alreadyIn = false;
+						for (var j = 0; j < playersToCheck.length; j++){
+							if (playersToCheck[j] == lines[i]) {
+								alreadyIn = true;
+								break;
+							}
+						}
+						if (!alreadyIn) {
+							playersToCheck.push(lines[i]);
+						}
+					}    				
+				}
+				if (playersToCheck.length < MIN_PLAYERS) {
+					document.getElementById('errorSpan').innerHTML = "Need to have at least " + MIN_PLAYERS + " players.";
+					return false;
+				}				
+				if (playersToCheck.length > MAX_PLAYERS) {
+					document.getElementById('errorSpan').innerHTML = "Only showing info for the first " + MAX_PLAYERS + " players.";
+				}
+
+				playersToCheck = playersToCheck.sort();
+				players = playersToCheck.slice(0, MAX_PLAYERS);				
+
+				return true;
+			}
+
+			function updatePlayersTable() {
+				var matchesTable = document.getElementById('matchesTable');
+				var matches = new Array();
+				for (var i = 0; i < matchesTable.rows.length; i++) {
+					var match = new Object();
+					var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+
+					match.player1 = matchResultElement.player1;
+					match.player2 = matchResultElement.player2;
+					match.result = matchResultElement.value;
+					matches.push(match);
+				}
+
+				var playersAttrs = new Array();
+				for (var i = 0; i < players.length; i++) {
+					var playerWithAttrs = new Object();
+					playerWithAttrs.name = players[i];
+					playerWithAttrs.matchesPlayed = 0;
+					playerWithAttrs.points = 0;					
+					playerWithAttrs.average = "-";
+					playerWithAttrs._2nd = 0;	
+					playerWithAttrs._3rd = 0;
+					playersAttrs.push(playerWithAttrs);
+				}
+
+				for (var i = 0; i < playersAttrs.length; i++) {					
+					var p = playersAttrs[i];
+					for (var j = 0; j < matches.length; j++) {						
+						if (matches[j].player1 == p.name || matches[j].player2 == p.name) {
+							if (matches[j].result != "Not played") {
+								p.points += ((matches[j].player1 == p.name) ? matches[j].result : (GAMES_PER_MATCH - matches[j].result)) * 1;
+								p.matchesPlayed++;
+								p.average = p.matchesPlayed == 0 ? "-" : (p.points / p.matchesPlayed).toFixed(1);
+							}
+						}
+					}
+				}
+
+
+				for (var i = 0; i < playersAttrs.length; i++) {					
+					var p = playersAttrs[i];
+					for (var j = 0; j < matches.length; j++) {						
+						if (matches[j].player1 == p.name || matches[j].player2 == p.name) {
+							if (matches[j].result != "Not played") {
+								var oppName = (matches[j].player1 == p.name) ? matches[j].player2 : matches[j].player1;
+								var opp;
+								for (var k = 0; k < playersAttrs.length; k++) {
+									if (playersAttrs[k].name == oppName) {
+										opp = playersAttrs[k];
+										break;
+									}
+								}								
+								p._3rd += ((matches[j].player1 == p.name) ? matches[j].result : (GAMES_PER_MATCH - matches[j].result)) * opp.points;
+							}
+						}
+					}
+
+					for (var j = 0; j < playersAttrs.length; j++) {
+						if (j != i && p.points == playersAttrs[j].points) {
+							for (var k = 0; k < matches.length; k++) {
+								if (matches[k].result != "Not played" &&
+									((matches[k].player1 == p.name && matches[k].player2 == playersAttrs[j].name) || 
+									(matches[k].player2 == p.name && matches[k].player1 == playersAttrs[j].name))) {
+									p._2nd += ((matches[k].player1 == p.name) ? matches[k].result : (GAMES_PER_MATCH - matches[k].result)) * 1;
+									break;
+								}
+							}
+						}
+					}
+				}
+
+				playersAttrs = playersAttrs.sort(function(a, b) {
+						if (a.average != b.average) {
+							return a.average < b.average;
+						} else {
+							if (a._2nd != b._2nd) {
+								return a._2nd < b._2nd;
+							} else {
+								if (a._3rd != b._3rd) {
+									return a._3rd < b._3rd;
+								} else {
+									return a.name > b.name;
+								}
+							}
+						}
+					}
+				);
+
+
+				var playersTable = document.getElementById('playersTable');
+				for (var i = playersTable.rows.length - 1; i > 0; i--) {
+					playersTable.deleteRow(i);
+				}
+				for (var i = 0; i < playersAttrs.length; i++) {
+					var row = playersTable.insertRow(i + 1);
+					row.insertCell(0).innerHTML = i + 1; 
+					row.insertCell(1).innerHTML = playersAttrs[i].name; 
+					row.insertCell(2).innerHTML = playersAttrs[i].average;
+					row.insertCell(3).innerHTML = playersAttrs[i].points; 
+					row.insertCell(4).innerHTML = playersAttrs[i].matchesPlayed;
+					row.insertCell(5).innerHTML = playersAttrs[i]._2nd; 
+					row.insertCell(6).innerHTML = playersAttrs[i]._3rd;
+				}
+			}
+
+			function generateMatchInfo(player1, player2) {
+				var matchesTable = document.getElementById('matchesTable');
+				var row = matchesTable.insertRow(matchesTable.rows.length);
+				
+				row.insertCell(0).innerHTML = player1;
+
+				var results = ["Not played"];
+				for (var i = 0; i <= GAMES_PER_MATCH; i += 0.5) {
+					results.push(i);
+				}
+				var cell = row.insertCell(1);
+				var select = document.createElement("select");
+				select.player1 = player1;
+				select.player2 = player2;
+
+				cell.appendChild(select);				
+
+				for (var i = 0; i < results.length; i++) {
+					var option = document.createElement("option");
+					option.value = results[i];
+					option.text = results[i];
+					select.appendChild(option);
+				}
+				select.setAttribute('onchange', 'updatePlayersTable()');
+
+				row.insertCell(2).innerHTML = player2;
+			}
+
+			function showMatchesAndResults() {				
+				if (!checkInput()) {
+					return false;
+				}
+
+				document.getElementById('matchesTableDiv').innerHTML = "<table id=\"matchesTable\"></table>";
+				for (var i = 0; i < players.length; i++) {
+					for (var j = i + 1; j < players.length; j++) {
+						generateMatchInfo(players[i], players[j]);
+					}		
+				}
+
+
+				var playersTableHTML = "<table id=\"playersTable\"><tr>"
+					+ "<th>rank</th>"
+					+ "<th>name</th>"
+					+ "<th>average</th>"
+					+ "<th>points</th>"
+					+ "<th>#played</th>"
+					+ "<th>2nd</th>"
+					+ "<th>3rd</th>"
+					+ "</tr></table>";
+				document.getElementById('playersTableDiv').innerHTML = playersTableHTML;
+
+				updatePlayersTable();
+			}
+
+		</script>
+	</head>
+
+
+	<body>
+
+
+		<form>
+			<textarea id="playersTextArea" placeholder="Enter player names" rows="8" cols="50"></textarea>
+			<input type="button" value="Submit" onclick="showMatchesAndResults()"/>
+			<span id="errorSpan"></span>
+		</form>
+
+		<div id="matchesTableDiv"></div>
+		<div id="playersTableDiv"></div>
+
+
+	</body>
+</html>
