@@ -50,7 +50,7 @@ public class StandingsParser {
                 ((Element) element.getElementsByTag("a").toArray()[0]).text();
 
                 for (Object playerNameTag : element.getElementsByTag("a").toArray()) {
-                    groups.get(groups.size() - 1).getPlayers().add(((Element) playerNameTag).text());
+                    groups.get(groups.size() - 1).getPlayers().add(new Player(((Element) playerNameTag).text()));
                 }
             }
             if (tagName.equals("span")) {

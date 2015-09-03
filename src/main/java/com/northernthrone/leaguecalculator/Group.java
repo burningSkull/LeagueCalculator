@@ -6,7 +6,7 @@ import java.util.List;
 public class Group {
 
     private String name;
-    private final List<String> players = new ArrayList<>();
+    private final List<Player> players = new ArrayList<>();
     private final List<Match> matches = new ArrayList<>();
 
     public String getName() {
@@ -17,7 +17,7 @@ public class Group {
         this.name = name;
     }
 
-    public List<String> getPlayers() {
+    public List<Player> getPlayers() {
         return players;
     }
 

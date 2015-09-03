@@ -5,13 +5,39 @@
                     const MAX_PLAYERS = 8;
                     const GAMES_PER_MATCH = 6;
                     var currentGroup;
+            var standings;
 
-            function testajax() {
+            function groupSelected() {
+                var select = document.getElementById("groupSelect");
+                var groupName = select.options[select.selectedIndex].value;
+                for (var i = 0; i < standings.length; i++) {
+                    if (standings[i].name == groupName) {
+                        currentGroup = standings[i];
+                        initGroup(currentGroup);
+                        recalculateAndRedraw(true);
+                    }
+                }
+            }
+
+            function fillGroupSelector() {
+                var select = document.getElementById("groupSelect");
+                select.innerHTML = "";                
+                standings.forEach(function (g) {
+                    var option = document.createElement("option");
+                    option.value = g.name;
+                    option.text = g.name;
+                    select.appendChild(option);
+                });
+            }
+
+            function loadStandingsFromServer() {
                 var xmlhttp = new XMLHttpRequest();
                 var url = "http://localhost:8080/LeagueCalculator/JSONServlet";
                 xmlhttp.open("GET", url, false);
                 xmlhttp.send();
+                standings = JSON.parse(xmlhttp.responseText);
                 console.log(xmlhttp.responseText);
+                fillGroupSelector();
             }
 
             function initGroup(group) {
@@ -56,9 +82,11 @@
                 });
             }
 
-            function recalculateAndRedraw() {
+            function recalculateAndRedraw(reset) {
                 var group = currentGroup;
                 resetPlayers(group);
+                if (reset) 
+                    resetMatches(group)
                 parseMatchesFromHTML(group);
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
@@ -69,14 +97,16 @@
 
             function parseMatchesFromHTML(group) {
                 var matchesTable = document.getElementById('matchesTable');
-                for (var i = 0; i < matchesTable.rows.length; i++) {
-                    var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+                if (matchesTable != null) {
+                    for (var i = 0; i < matchesTable.rows.length; i++) {
+                        var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
 
-                    for (var j = 0; j < group.matches.length; j++) {
-                        var m = group.matches[j];
-                        if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
-                            m.speculativeResult = matchResultElement.value;
-                            break;
+                        for (var j = 0; j < group.matches.length; j++) {
+                            var m = group.matches[j];
+                            if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
+                                m.speculativeResult = matchResultElement.value;
+                                break;
+                            }
                         }
                     }
                 }
@@ -225,7 +255,7 @@
                         select.appendChild(option);
                     }
                     select.value = m.speculativeResult;
-                    select.setAttribute('onchange', 'recalculateAndRedraw()');
+                    select.setAttribute('onchange', 'recalculateAndRedraw(false)');
 
                     row.insertCell(2).innerHTML = m.p2;
                 });
@@ -325,8 +355,10 @@
 
 
     <body>
+        <select id="groupSelect" onchange="groupSelected()">
+        </select>        
 
-        <input type="button" value="TEST" onclick="testajax()"/>
+        <input type="button" value="TEST" onclick="loadStandingsFromServer()"/>
         <form>
             <textarea id="playersTextArea" placeholder="Enter player names" rows="8" cols="50"></textarea>
             <input type="button" value="Submit" onclick="customGroupLaunch()"/>
