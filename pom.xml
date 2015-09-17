@@ -16,9 +16,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <failOnMissingWebXml>false</failOnMissingWebXml>
     </properties>
-    
-
-    
+        
     <profiles>
         <profile>
             <id>openshift</id>
