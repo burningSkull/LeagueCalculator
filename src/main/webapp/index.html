@@ -22,6 +22,12 @@
             function fillGroupSelector() {
                 var select = document.getElementById("groupSelect");
                 select.innerHTML = "";                
+                var placeholderOption = document.createElement("option");
+                placeholderOption.value = "";
+                placeholderOption.text = "Select your group";
+                placeholderOption.selected = true;
+                placeholderOption.disabled = true;
+                select.appendChild(placeholderOption);
                 standings.forEach(function (g) {
                     var option = document.createElement("option");
                     option.value = g.name;
