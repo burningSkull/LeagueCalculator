@@ -11,7 +11,7 @@ import org.jsoup.select.Elements;
 public class StandingsParser {
 
     private static Match parseMatch(String input) {
-        Pattern pattern = Pattern.compile("(?<p1>.*?) - (?<p2>.*?): (?<score>[0-9]*,?[0-9]*) - .*");
+        Pattern pattern = Pattern.compile("(?<p1>.*?) - (?<p2>.*?): (?<score>[0-9]*[,\\.]?[0-9]*) - .*");
         Matcher matcher = pattern.matcher(input);
         if (matcher.find()) {
             Match match = new Match();
