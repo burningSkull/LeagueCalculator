@@ -23,8 +23,11 @@
             }
 
             function fillGroupSelector() {
-                var select = document.getElementById("groupSelect");
-                select.innerHTML = "";
+                var select = document.createElement("select");
+                select.onchange = groupSelected;
+                select.id = "groupSelect";
+                document.getElementById('userInput').innerHTML = "";
+                document.getElementById('userInput').appendChild(select);
                 var placeholderOption = document.createElement("option");
                 placeholderOption.value = "";
                 placeholderOption.text = "Select your group";
@@ -44,6 +47,7 @@
                 xmlhttp.timeout = REQUEST_TIMEOUT;
                 xmlhttp.ontimeout = function () {
                     document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may fill player names manually.";
+                    drawCustomGroupForm();
                 };
                 xmlhttp.onload = function () {
                     if (xmlhttp.readyState === 4) {
@@ -54,7 +58,7 @@
                             console.error(xmlhttp.statusText);
                         }
                     }
-                };                
+                };
                 xmlhttp.open("GET", SERVLET_URL, true);
                 xmlhttp.send();
             }
@@ -309,6 +313,22 @@
                 }
             }
 
+            function drawCustomGroupForm() {
+                var customGroupForm = document.createElement("form");
+                var playersTextArea = document.createElement("textarea");
+                playersTextArea.id = "playersTextArea";
+                playersTextArea.placeholder = "Enter player names";
+                playersTextArea.rows = 8;
+                playersTextArea.cols = 50;
+                customGroupForm.appendChild(playersTextArea);
+                var playersSubmitButton = document.createElement("input");
+                playersSubmitButton.type = "button";
+                playersSubmitButton.value = "Submit";
+                playersSubmitButton.onclick = customGroupLaunch;
+                customGroupForm.appendChild(playersSubmitButton);
+                document.getElementById('userInput').innerHTML = "";
+                document.getElementById('userInput').appendChild(customGroupForm);
+            }
 
             function checkInput() {
                 document.getElementById('errorSpan').innerHTML = "";
@@ -374,18 +394,9 @@
 
 
     <body onload="loadStandingsFromServer()">
-        <select id="groupSelect" onchange="groupSelected()">
-        </select>        
-        
-        <form>
-            <textarea id="playersTextArea" placeholder="Enter player names" rows="8" cols="50"></textarea>
-            <input type="button" value="Submit" onclick="customGroupLaunch()"/>
-            <span id="errorSpan"></span>
-        </form>
-
+        <div id="userInput">Connecting to f.ds...</div>
+        <span id="errorSpan"></span>
         <div id="matchesTableDiv"></div>
         <div id="playersTableDiv"></div>
-
-
     </body>
 </html>
