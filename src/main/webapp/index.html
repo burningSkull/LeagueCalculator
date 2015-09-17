@@ -154,13 +154,13 @@
                     var p = group.players[i];
 
                     for (var j = 0; j < group.players.length; j++) {
-                        if (j != i && p.points == group.players.points) {
+                        if (j != i && p.points == group.players[j].points) {
                             for (var k = 0; k < group.matches.length; k++) {
                                 var m = group.matches[k];
                                 if (m.speculativeResult != "Not played" &&
                                         ((m.p1 == p.name && m.p2 == group.players[j].name) ||
                                                 (m.p2 == p.name && m.p1 == group.players[j].name))) {
-                                    p._2nd += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - matches[k].speculativeResult)) * 1;
+                                    p._2nd += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - group.matches[k].speculativeResult)) * 1;
                                     break;
                                 }
                             }
