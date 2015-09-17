@@ -4,8 +4,11 @@
             const MIN_PLAYERS = 2;
                     const MAX_PLAYERS = 8;
                     const GAMES_PER_MATCH = 6;
+                    const SERVLET_URL = "http://localhost:8080/LeagueCalculator/JSONServlet";
+                    const REQUEST_TIMEOUT = 5000;
                     var currentGroup;
             var standings;
+
 
             function groupSelected() {
                 var select = document.getElementById("groupSelect");
@@ -21,7 +24,7 @@
 
             function fillGroupSelector() {
                 var select = document.getElementById("groupSelect");
-                select.innerHTML = "";                
+                select.innerHTML = "";
                 var placeholderOption = document.createElement("option");
                 placeholderOption.value = "";
                 placeholderOption.text = "Select your group";
@@ -38,12 +41,22 @@
 
             function loadStandingsFromServer() {
                 var xmlhttp = new XMLHttpRequest();
-                var url = "http://localhost:8080/LeagueCalculator/JSONServlet";
-                xmlhttp.open("GET", url, false);
+                xmlhttp.timeout = REQUEST_TIMEOUT;
+                xmlhttp.ontimeout = function () {
+                    document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may fill player names manually.";
+                };
+                xmlhttp.onload = function () {
+                    if (xmlhttp.readyState === 4) {
+                        if (xmlhttp.status === 200) {
+                            standings = JSON.parse(xmlhttp.responseText);
+                            fillGroupSelector();
+                        } else {
+                            console.error(xmlhttp.statusText);
+                        }
+                    }
+                };                
+                xmlhttp.open("GET", SERVLET_URL, true);
                 xmlhttp.send();
-                standings = JSON.parse(xmlhttp.responseText);
-                console.log(xmlhttp.responseText);
-                fillGroupSelector();
             }
 
             function initGroup(group) {
@@ -91,7 +104,7 @@
             function recalculateAndRedraw(reset) {
                 var group = currentGroup;
                 resetPlayers(group);
-                if (reset) 
+                if (reset)
                     resetMatches(group)
                 parseMatchesFromHTML(group);
                 calculatePlayersAttributes(group);
@@ -360,11 +373,10 @@
     </head>
 
 
-    <body>
+    <body onload="loadStandingsFromServer()">
         <select id="groupSelect" onchange="groupSelected()">
         </select>        
-
-        <input type="button" value="TEST" onclick="loadStandingsFromServer()"/>
+        
         <form>
             <textarea id="playersTextArea" placeholder="Enter player names" rows="8" cols="50"></textarea>
             <input type="button" value="Submit" onclick="customGroupLaunch()"/>
