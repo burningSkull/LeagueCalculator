@@ -4,7 +4,7 @@
             const MIN_PLAYERS = 2;
                     const MAX_PLAYERS = 8;
                     const GAMES_PER_MATCH = 6;
-                    const SERVLET_URL = "http://localhost:8080/LeagueCalculator/JSONServlet";
+                    const SERVLET_URL = "/JSONServlet";
                     const REQUEST_TIMEOUT = 5000;
                     var currentGroup;
             var standings;
@@ -46,7 +46,7 @@
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.timeout = REQUEST_TIMEOUT;
                 xmlhttp.ontimeout = function () {
-                    document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may fill player names manually.";
+                    document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may enter player names manually.";
                     drawCustomGroupForm();
                 };
                 xmlhttp.onload = function () {
@@ -56,10 +56,12 @@
                             fillGroupSelector();
                         } else {
                             console.error(xmlhttp.statusText);
+                            document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
+                            drawCustomGroupForm();
                         }
                     }
                 };
-                xmlhttp.open("GET", SERVLET_URL, true);
+                xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
                 xmlhttp.send();
             }
 
