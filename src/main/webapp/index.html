@@ -11,6 +11,17 @@
         <script src="jquery.min.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
 
+        <style>            
+            tr.changed {
+                background: #f0f8ff;
+            }
+
+            td.highlight {
+                color: #8CC101;
+            }
+
+        </style>
+
         <script type="text/javascript">
             const MIN_PLAYERS = 2;
                     const MAX_PLAYERS = 8;
@@ -137,16 +148,14 @@
 
             function parseMatchesFromHTML(group) {
                 var matchesTable = document.getElementById("matchesTable");
-                if (matchesTable != null) {
-                    for (var i = 0; i < matchesTable.rows.length; i++) {
-                        var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+                for (var i = 0; i < matchesTable.rows.length; i++) {
+                    var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
 
-                        for (var j = 0; j < group.matches.length; j++) {
-                            var m = group.matches[j];
-                            if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
-                                m.speculativeResult = matchResultElement.value;
-                                break;
-                            }
+                    for (var j = 0; j < group.matches.length; j++) {
+                        var m = group.matches[j];
+                        if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
+                            m.speculativeResult = matchResultElement.value;
+                            break;
                         }
                     }
                 }
@@ -298,6 +307,9 @@
                     select.setAttribute("onchange", "recalculateAndRedraw(false)");
 
                     row.insertCell(2).innerHTML = m.p2;
+                    if (m.actualResult != m.speculativeResult) {
+                        row.classList.add("changed");
+                    }
                 });
             }
 
@@ -317,6 +329,29 @@
                     row.insertCell(4).innerHTML = p.matchesPlayed;
                     row.insertCell(5).innerHTML = p._2nd;
                     row.insertCell(6).innerHTML = p._3rd;
+                    row.setAttribute("onmouseover", "mouseOverStandingsRow(\"" + p.name + "\");");
+                    row.setAttribute("onmouseout", "mouseOutOfStandingsRow();");
+                }
+            }
+
+            function mouseOverStandingsRow(playerName) {
+                var matchesTable = document.getElementById("matchesTable");
+                for (var i = 0; i < matchesTable.rows.length; i++) {
+                    var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+                    if (matchResultElement.p1 == playerName) {
+                        matchesTable.rows[i].cells[0].classList.add("highlight");
+                    }
+                    if (matchResultElement.p2 == playerName) {
+                        matchesTable.rows[i].cells[2].classList.add("highlight");
+                    }
+                }
+            }
+
+            function mouseOutOfStandingsRow() {
+                var matchesTable = document.getElementById("matchesTable");
+                for (var i = 0; i < matchesTable.rows.length; i++) {
+                    matchesTable.rows[i].cells[0].classList.remove("highlight");
+                    matchesTable.rows[i].cells[2].classList.remove("highlight");
                 }
             }
 
