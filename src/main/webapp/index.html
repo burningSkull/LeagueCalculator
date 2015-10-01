@@ -1,11 +1,23 @@
+<!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>League calculator</title>
+
+        <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <script src="jquery.min.js"></script>
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+
         <script type="text/javascript">
             const MIN_PLAYERS = 2;
                     const MAX_PLAYERS = 8;
                     const GAMES_PER_MATCH = 6;
                     const SERVLET_URL = "/JSONServlet";
                     const REQUEST_TIMEOUT = 5000;
+                    const RANK_PICS_PATH = "rankpics";
                     var currentGroup;
             var standings;
 
@@ -23,17 +35,7 @@
             }
 
             function fillGroupSelector() {
-                var select = document.createElement("select");
-                select.onchange = groupSelected;
-                select.id = "groupSelect";
-                document.getElementById('userInput').innerHTML = "";
-                document.getElementById('userInput').appendChild(select);
-                var placeholderOption = document.createElement("option");
-                placeholderOption.value = "";
-                placeholderOption.text = "Select your group";
-                placeholderOption.selected = true;
-                placeholderOption.disabled = true;
-                select.appendChild(placeholderOption);
+                var select = document.getElementById("groupSelect");
                 standings.forEach(function (g) {
                     var option = document.createElement("option");
                     option.value = g.name;
@@ -46,18 +48,30 @@
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.timeout = REQUEST_TIMEOUT;
                 xmlhttp.ontimeout = function () {
+                    document.getElementById("helloLayer").style.display = "none";
+                    document.getElementById("mainLayer").style.display = "block";
+                    document.getElementById("noConnection").style.display = "block";
                     document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may enter player names manually.";
-                    drawCustomGroupForm();
                 };
                 xmlhttp.onload = function () {
+                    document.getElementById("helloLayer").style.display = "none";
+                    document.getElementById("mainLayer").style.display = "block";
                     if (xmlhttp.readyState === 4) {
                         if (xmlhttp.status === 200) {
-                            standings = JSON.parse(xmlhttp.responseText);
-                            fillGroupSelector();
+                            try {
+                                standings = JSON.parse(xmlhttp.responseText);
+                                fillGroupSelector();
+                                document.getElementById("connectionEstablished").style.display = "block";
+                            }
+                            catch (err) {
+                                document.getElementById("noConnection").style.display = "block";
+                                console.error(err.message);
+                                document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
+                            }
                         } else {
+                            document.getElementById("noConnection").style.display = "block";
                             console.error(xmlhttp.statusText);
                             document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
-                            drawCustomGroupForm();
                         }
                     }
                 };
@@ -115,13 +129,14 @@
                 parseMatchesFromHTML(group);
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
+                document.getElementById("dataDiv").style.display = "block";
                 sortMatches(group);
                 drawMatches(group);
                 drawStandings(group);
             }
 
             function parseMatchesFromHTML(group) {
-                var matchesTable = document.getElementById('matchesTable');
+                var matchesTable = document.getElementById("matchesTable");
                 if (matchesTable != null) {
                     for (var i = 0; i < matchesTable.rows.length; i++) {
                         var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
@@ -253,8 +268,8 @@
             }
 
             function drawMatches(group) {
-                document.getElementById('matchesTableDiv').innerHTML = "<table id=\"matchesTable\"></table>";
-                var matchesTable = document.getElementById('matchesTable');
+                var matchesTable = document.getElementById("matchesTable");
+                matchesTable.innerHTML = "";
 
                 group.matches.forEach(function (m) {
                     var row = matchesTable.insertRow(matchesTable.rows.length);
@@ -280,32 +295,22 @@
                         select.appendChild(option);
                     }
                     select.value = m.speculativeResult;
-                    select.setAttribute('onchange', 'recalculateAndRedraw(false)');
+                    select.setAttribute("onchange", "recalculateAndRedraw(false)");
 
                     row.insertCell(2).innerHTML = m.p2;
                 });
             }
 
             function drawStandings(group) {
-                var playersTableHTML = "<table id=\"playersTable\"><tr>"
-                        + "<th>rank</th>"
-                        + "<th>name</th>"
-                        + "<th>average</th>"
-                        + "<th>points</th>"
-                        + "<th>#played</th>"
-                        + "<th>2nd</th>"
-                        + "<th>3rd</th>"
-                        + "</tr></table>";
-                document.getElementById('playersTableDiv').innerHTML = playersTableHTML;
-
-                var playersTable = document.getElementById('playersTable');
+                var playersTable = document.getElementById("standingsTable");
                 for (var i = playersTable.rows.length - 1; i > 0; i--) {
                     playersTable.deleteRow(i);
                 }
+
                 for (var i = 0; i < group.players.length; i++) {
                     var p = group.players[i];
                     var row = playersTable.insertRow(i + 1);
-                    row.insertCell(0).innerHTML = i + 1;
+                    row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "\\rank" + (i + 1) + ".png\">";
                     row.insertCell(1).innerHTML = p.name;
                     row.insertCell(2).innerHTML = p.average;
                     row.insertCell(3).innerHTML = p.points;
@@ -315,29 +320,12 @@
                 }
             }
 
-            function drawCustomGroupForm() {
-                var customGroupForm = document.createElement("form");
-                var playersTextArea = document.createElement("textarea");
-                playersTextArea.id = "playersTextArea";
-                playersTextArea.placeholder = "Enter player names";
-                playersTextArea.rows = 8;
-                playersTextArea.cols = 50;
-                customGroupForm.appendChild(playersTextArea);
-                var playersSubmitButton = document.createElement("input");
-                playersSubmitButton.type = "button";
-                playersSubmitButton.value = "Submit";
-                playersSubmitButton.onclick = customGroupLaunch;
-                customGroupForm.appendChild(playersSubmitButton);
-                document.getElementById('userInput').innerHTML = "";
-                document.getElementById('userInput').appendChild(customGroupForm);
-            }
-
             function checkInput() {
-                document.getElementById('errorSpan').innerHTML = "";
+                document.getElementById("errorSpan").innerHTML = "";
 
                 var playersToCheck = new Array();
 
-                var lines = document.getElementById('playersTextArea').value.split('\n');
+                var lines = document.getElementById("playersTextArea").value.split('\n');
                 for (var i = 0; i < lines.length; i++) {
                     if (lines[i] != "") {
                         var alreadyIn = false;
@@ -365,11 +353,12 @@
 
 
             function customGroupLaunch() {
-
+                document.getElementById("dataDiv").style.display = "none";
                 var input = checkInput();
                 if (!input) {
                     return false;
                 }
+                document.getElementById("dataDiv").style.display = "block";
                 currentGroup = new Object;
                 currentGroup.name = "Custom group";
                 currentGroup.players = [];
@@ -396,9 +385,48 @@
 
 
     <body onload="loadStandingsFromServer()">
-        <div id="userInput">Connecting to f.ds...</div>
-        <span id="errorSpan"></span>
-        <div id="matchesTableDiv"></div>
-        <div id="playersTableDiv"></div>
+        <div class="container">
+            <div id="helloLayer">
+                <h1>Connecting to f.ds...</h1>        
+            </div>
+
+            <div id="mainLayer" style="display: none;">
+                <div class="page-header">
+                    <div id="noConnection" style="display: none;">
+                        <form role="form">
+                            <textarea id="playersTextArea" class="form-group" placeholder="Enter player names" rows="8" cols="50"></textarea>
+                            <input type="button" class="form-group" value="Submit" onclick="customGroupLaunch()" />
+                        </form>
+                        <span id="errorSpan"></span>
+                    </div>
+                    <div id="connectionEstablished" style="display: none;">
+                        <select id="groupSelect" onchange="groupSelected()">
+                            <option value="" selected disabled >Select your group</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row" id="dataDiv" style="display: none;">
+                    <div class="col-md-6">
+                        <h3>Matches</h3>
+                        <table id="matchesTable" class="table"></table>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Standings</h3>
+                        <table id="standingsTable" class="table">
+                            <tr>
+                                <th>rank</th>
+                                <th>name</th>
+                                <th>average</th>
+                                <th>points</th>
+                                <th>#played</th>
+                                <th>2nd</th>
+                                <th>3rd</th>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>                        
+        </div>
     </body>
 </html>
