@@ -11,6 +11,9 @@
         <script src="jquery.min.js"></script>
         <script src="bootstrap/js/bootstrap.min.js"></script>
 
+        <link href="bootstrap-slider/bootstrap-slider.min.css" rel="stylesheet">
+        <script src="bootstrap-slider/bootstrap-slider.min.js"></script>
+
         <style>            
             tr.changed {
                 background: #f0f8ff;
@@ -30,6 +33,11 @@
             .matchResultChanged:hover {
                 color: #8CC101;
             }            
+            /*
+                        #ex1Slider .slider-selection {
+                            background: #BABABA;
+                        }
+            */
 
         </style>
 
@@ -319,6 +327,17 @@
 
                     var cell = row.insertCell(1);
                     var select = document.createElement("select");
+
+
+<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-0.5" data-slider-max="6" data-slider-step="0.5" data-slider-value="0"/>
+                    var slider = new Slider("#ex1", {
+                        tooltip: 'always',
+                        formatter: function (value) {
+                            return value == -0.5 ? "Not played" : value;
+                        }
+                    });
+
+
                     select.p1 = m.p1;
                     select.p2 = m.p2;
 
@@ -463,6 +482,8 @@
 
             <div id="mainLayer" style="display: none;">
                 <div class="page-header">
+                    <!--<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-0.5" data-slider-max="6" data-slider-step="0.5" data-slider-value="0"/>-->
+                    <input id="ex1" data-slider-id='ex1Slider' type="text" />
                     <div id="noConnection" style="display: none;">
                         <form role="form">
                             <textarea id="playersTextArea" class="form-group" placeholder="Enter player names" rows="8" cols="50"></textarea>
@@ -499,5 +520,19 @@
                 </div>
             </div>                        
         </div>
+
+        <script>
+            var slider = new Slider("#ex1", {
+                tooltip: 'always',                
+                data-slider-min: -0.5,
+                data-slider-max: 6,
+                data-slider-step: 0.5,
+                data-slider-value: 0,
+                
+                formatter: function (value) {
+                    return value == -0.5 ? "Not played" : value;
+                }                
+            });
+        </script>
     </body>
 </html>
