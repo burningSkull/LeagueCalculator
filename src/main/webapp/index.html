@@ -20,6 +20,17 @@
                 color: #8CC101;
             }
 
+            .matchResultUnchanged {
+                visibility: hidden;
+            }
+
+            .matchResultChanged {
+            }
+
+            .matchResultChanged:hover {
+                color: #8CC101;
+            }            
+
         </style>
 
         <script type="text/javascript">
@@ -40,7 +51,7 @@
                     if (standings[i].name == groupName) {
                         currentGroup = standings[i];
                         initGroup(currentGroup);
-                        recalculateAndRedraw(true);
+                        recalculateAndRedraw(1);
                     }
                 }
             }
@@ -86,7 +97,9 @@
                         }
                     }
                 };
-                xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
+                //xmlhttp.open("GET", "LeagueCalculator" + SERVLET_URL, true);
+                xmlhttp.open("GET", "/LeagueCalculator/JSONServlet", true);
+                //xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
                 xmlhttp.send();
             }
 
@@ -132,12 +145,26 @@
                 });
             }
 
-            function recalculateAndRedraw(reset) {
+            function resetMatch(match) {
+                match.speculativeResult = match.actualResult;
+                recalculateAndRedraw(3);
+            }
+
+            function recalculateAndRedraw(mode) {
+                /*
+                 * mode
+                 * 1: reset all
+                 * 2: do not reset matches
+                 * 3: do not parse matches 
+                 * 
+                 * That code is awful, it'll be gone after i start using angular with this thing
+                 */
                 var group = currentGroup;
                 resetPlayers(group);
-                if (reset)
-                    resetMatches(group)
-                parseMatchesFromHTML(group);
+                if (mode == 1)
+                    resetMatches(group);
+                if (mode != 3)
+                    parseMatchesFromHTML(group);
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
                 document.getElementById("dataDiv").style.display = "block";
@@ -304,9 +331,18 @@
                         select.appendChild(option);
                     }
                     select.value = m.speculativeResult;
-                    select.setAttribute("onchange", "recalculateAndRedraw(false)");
+                    select.setAttribute("onchange", "recalculateAndRedraw(2)");
 
-                    row.insertCell(2).innerHTML = m.p2;
+                    var revertButton = document.createElement("div");
+                    revertButton.innerHTML = "X";
+                    revertButton.onclick = function () {
+                        resetMatch(m);
+                    }
+                    revertButton.classList.add(m.actualResult == m.speculativeResult ? "matchResultUnchanged" : "matchResultChanged");
+                    revertButton.style.paddingLeft = true;
+
+                    row.insertCell(2).appendChild(revertButton);
+                    row.insertCell(3).innerHTML = m.p2;
                     if (m.actualResult != m.speculativeResult) {
                         row.classList.add("changed");
                     }
@@ -342,7 +378,7 @@
                         matchesTable.rows[i].cells[0].classList.add("highlight");
                     }
                     if (matchResultElement.p2 == playerName) {
-                        matchesTable.rows[i].cells[2].classList.add("highlight");
+                        matchesTable.rows[i].cells[3].classList.add("highlight");
                     }
                 }
             }
@@ -351,7 +387,7 @@
                 var matchesTable = document.getElementById("matchesTable");
                 for (var i = 0; i < matchesTable.rows.length; i++) {
                     matchesTable.rows[i].cells[0].classList.remove("highlight");
-                    matchesTable.rows[i].cells[2].classList.remove("highlight");
+                    matchesTable.rows[i].cells[3].classList.remove("highlight");
                 }
             }
 
