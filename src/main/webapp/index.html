@@ -33,11 +33,11 @@
             .matchResultChanged:hover {
                 color: #8CC101;
             }            
-            /*
-                        #ex1Slider .slider-selection {
-                            background: #BABABA;
-                        }
-            */
+
+            #ex1Slider .slider-selection {
+                background: #BABABA;
+            }
+
 
         </style>
 
@@ -48,6 +48,8 @@
                     const SERVLET_URL = "/JSONServlet";
                     const REQUEST_TIMEOUT = 5000;
                     const RANK_PICS_PATH = "rankpics";
+                    const MATCH_NOT_PLAYED = - 0.5;
+                    const MATCH_NOT_PLAYED_STRING = "Not played";
                     var currentGroup;
             var standings;
 
@@ -129,7 +131,7 @@
                                 var m = new Object();
                                 m.p1 = pA.name;
                                 m.p2 = pB.name;
-                                m.actualResult = "Not played";
+                                m.actualResult = MATCH_NOT_PLAYED;
                                 group.matches.push(m);
                             }
                         }
@@ -164,6 +166,7 @@
                  * 1: reset all
                  * 2: do not reset matches
                  * 3: do not parse matches 
+                 * 4: do not redraw matches
                  * 
                  * That code is awful, it'll be gone after i start using angular with this thing
                  */
@@ -176,20 +179,22 @@
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
                 document.getElementById("dataDiv").style.display = "block";
-                sortMatches(group);
-                drawMatches(group);
+                if (mode != 4) {
+                    sortMatches(group);
+                    drawMatches(group);
+                }
                 drawStandings(group);
             }
 
             function parseMatchesFromHTML(group) {
                 var matchesTable = document.getElementById("matchesTable");
                 for (var i = 0; i < matchesTable.rows.length; i++) {
-                    var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+                    var matchResultElement = matchesTable.rows[i].cells[1];
 
                     for (var j = 0; j < group.matches.length; j++) {
                         var m = group.matches[j];
                         if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
-                            m.speculativeResult = matchResultElement.value;
+                            m.speculativeResult = matchResultElement.childNodes[0].textContent == MATCH_NOT_PLAYED_STRING ? MATCH_NOT_PLAYED : matchResultElement.childNodes[0].textContent;
                             break;
                         }
                     }
@@ -202,7 +207,7 @@
                     for (var j = 0; j < group.matches.length; j++) {
                         var m = group.matches[j];
                         if (m.p1 == p.name || m.p2 == p.name) {
-                            if (m.speculativeResult != "Not played") {
+                            if (m.speculativeResult != MATCH_NOT_PLAYED) {
                                 p.points += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - m.speculativeResult)) * 1;
                                 p.matchesPlayed++;
                                 p.average = p.matchesPlayed == 0 ? "-" : (p.points / p.matchesPlayed).toFixed(1);
@@ -218,7 +223,7 @@
                         if (j != i && p.points == group.players[j].points) {
                             for (var k = 0; k < group.matches.length; k++) {
                                 var m = group.matches[k];
-                                if (m.speculativeResult != "Not played" &&
+                                if (m.speculativeResult != MATCH_NOT_PLAYED &&
                                         ((m.p1 == p.name && m.p2 == group.players[j].name) ||
                                                 (m.p2 == p.name && m.p1 == group.players[j].name))) {
                                     p._2nd += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - group.matches[k].speculativeResult)) * 1;
@@ -231,7 +236,7 @@
                     for (var j = 0; j < group.matches.length; j++) {
                         var m = group.matches[j];
                         if (m.p1 == p.name || m.p2 == p.name) {
-                            if (m.speculativeResult != "Not played") {
+                            if (m.speculativeResult != MATCH_NOT_PLAYED) {
                                 var oppName = (m.p1 == p.name) ? m.p2 : m.p1;
                                 var opp;
                                 for (var k = 0; k < group.players.length; k++) {
@@ -286,20 +291,20 @@
                         var swap = m.p1;
                         m.p1 = m.p2;
                         m.p2 = swap;
-                        if (m.actualResult != "Not played") {
+                        if (m.actualResult != MATCH_NOT_PLAYED) {
                             m.actualResult = GAMES_PER_MATCH - m.actualResult;
                         }
-                        if (m.speculativeResult != "Not played") {
+                        if (m.speculativeResult != MATCH_NOT_PLAYED) {
                             m.speculativeResult = GAMES_PER_MATCH - m.speculativeResult;
                         }
                     }
                 });
 
                 group.matches = group.matches.sort(function (a, b) {
-                    if (a.speculativeResult == "Not played" && b.speculativeResult != "Not played") {
+                    if (a.speculativeResult == MATCH_NOT_PLAYED && b.speculativeResult != MATCH_NOT_PLAYED) {
                         return 1;
                     }
-                    if (b.speculativeResult == "Not played" && a.speculativeResult != "Not played") {
+                    if (b.speculativeResult == MATCH_NOT_PLAYED && a.speculativeResult != MATCH_NOT_PLAYED) {
                         return -1;
                     }
 
@@ -315,42 +320,38 @@
                 var matchesTable = document.getElementById("matchesTable");
                 matchesTable.innerHTML = "";
 
+
+                var matchSliderCounter = 0;
                 group.matches.forEach(function (m) {
                     var row = matchesTable.insertRow(matchesTable.rows.length);
                     row.insertCell(0).innerHTML = m.p1;
 
-
-                    var results = ["Not played"];
-                    for (var i = 0; i <= GAMES_PER_MATCH; i += 0.5) {
-                        results.push(i);
-                    }
-
                     var cell = row.insertCell(1);
-                    var select = document.createElement("select");
 
+                    var matchSlider = document.createElement("input");
+                    matchSlider.type = "text";
+                    matchSlider.id = "matchSlider" + matchSliderCounter++;
+                    matchSlider.setAttribute("data-slider-min", MATCH_NOT_PLAYED);
+                    matchSlider.setAttribute("data-slider-max", GAMES_PER_MATCH);
+                    matchSlider.setAttribute("data-slider-step", 0.5);
+                    matchSlider.setAttribute("data-slider-value", m.speculativeResult);
+                    cell.p1 = m.p1;
+                    cell.p2 = m.p2;
+                    cell.appendChild(matchSlider);
 
-<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-0.5" data-slider-max="6" data-slider-step="0.5" data-slider-value="0"/>
-                    var slider = new Slider("#ex1", {
+                    var slider = new Slider("#" + matchSlider.id, {
                         tooltip: 'always',
                         formatter: function (value) {
-                            return value == -0.5 ? "Not played" : value;
+                            return value == MATCH_NOT_PLAYED ? MATCH_NOT_PLAYED_STRING : value;
                         }
                     });
 
-
-                    select.p1 = m.p1;
-                    select.p2 = m.p2;
-
-                    cell.appendChild(select);
-
-                    for (var i = 0; i < results.length; i++) {
-                        var option = document.createElement("option");
-                        option.value = results[i];
-                        option.text = results[i];
-                        select.appendChild(option);
-                    }
-                    select.value = m.speculativeResult;
-                    select.setAttribute("onchange", "recalculateAndRedraw(2)");
+                    slider.on("slide", function () {
+                        recalculateAndRedraw(4);
+                    });
+                    slider.on("slideStop", function () {
+                        recalculateAndRedraw(2);
+                    });
 
                     var revertButton = document.createElement("div");
                     revertButton.innerHTML = "X";
@@ -392,7 +393,7 @@
             function mouseOverStandingsRow(playerName) {
                 var matchesTable = document.getElementById("matchesTable");
                 for (var i = 0; i < matchesTable.rows.length; i++) {
-                    var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+                    var matchResultElement = matchesTable.rows[i].cells[1];
                     if (matchResultElement.p1 == playerName) {
                         matchesTable.rows[i].cells[0].classList.add("highlight");
                     }
@@ -482,8 +483,6 @@
 
             <div id="mainLayer" style="display: none;">
                 <div class="page-header">
-                    <!--<input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="-0.5" data-slider-max="6" data-slider-step="0.5" data-slider-value="0"/>-->
-                    <input id="ex1" data-slider-id='ex1Slider' type="text" />
                     <div id="noConnection" style="display: none;">
                         <form role="form">
                             <textarea id="playersTextArea" class="form-group" placeholder="Enter player names" rows="8" cols="50"></textarea>
@@ -520,19 +519,5 @@
                 </div>
             </div>                        
         </div>
-
-        <script>
-            var slider = new Slider("#ex1", {
-                tooltip: 'always',                
-                data-slider-min: -0.5,
-                data-slider-max: 6,
-                data-slider-step: 0.5,
-                data-slider-value: 0,
-                
-                formatter: function (value) {
-                    return value == -0.5 ? "Not played" : value;
-                }                
-            });
-        </script>
     </body>
 </html>
