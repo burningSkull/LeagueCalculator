@@ -38,21 +38,68 @@
                 background: #BABABA;
             }
 
-            .slider-handle {
+            .slider-handle.custom {
                 background: none transparent;
-                //content: url(rankpics//rank1.png);
                 position:absolute;
                 border-style:none;
                 box-shadow:none;
             }
 
-            .slider-handle:_1 {
-                content: url(rankpics//rank1.png);
+            .handle-not-played-score {
+                content: url(scoreHandles//notPlayed.png);
+            }
+
+            .handle-0-score {
+                content: url(scoreHandles//0.png);
+            }
+
+            .handle-0-5-score {
+                content: url(scoreHandles//0.5.png);
+            }
+
+            .handle-1-score {
+                content: url(scoreHandles//1.png);
             }            
 
-            .slider-handle._2 {
-                content: url(rankpics//rank2.png);
-            }            
+            .handle-1-5-score {
+                content: url(scoreHandles//1.5.png);
+            }                        
+
+            .handle-2-score {
+                content: url(scoreHandles//2.png);
+            }                        
+
+            .handle-2-5-score {
+                content: url(scoreHandles//2.5.png);
+            }                
+
+            .handle-3-score {
+                content: url(scoreHandles//3.png);
+            }              
+
+            .handle-3-5-score {
+                content: url(scoreHandles//3.5.png);
+            }                
+
+            .handle-4-score {
+                content: url(scoreHandles//4.png);
+            }              
+
+            .handle-4-5-score {
+                content: url(scoreHandles//4.5.png);
+            }                
+
+            .handle-5-score {
+                content: url(scoreHandles//5.png);
+            }              
+
+            .handle-5-5-score {
+                content: url(scoreHandles//5.5.png);
+            }                
+
+            .handle-6-score {
+                content: url(scoreHandles//6.png);
+            }
         </style>
 
         <script type="text/javascript">
@@ -349,7 +396,7 @@
                     matchSlider.setAttribute("data-slider-max", GAMES_PER_MATCH);
                     matchSlider.setAttribute("data-slider-step", 0.5);
                     matchSlider.setAttribute("data-slider-value", m.speculativeResult);
-                    //matchSlider.setAttribute("data-slider-handle", "custom");
+                    matchSlider.setAttribute("data-slider-handle", "custom");
                     cell.p1 = m.p1;
                     cell.p2 = m.p2;
                     cell.appendChild(matchSlider);
@@ -360,20 +407,9 @@
                             return value == MATCH_NOT_PLAYED ? MATCH_NOT_PLAYED_STRING : value;
                         }
                     });
-                    if (slider.getValue() == 1) {
-                        matchSlider.setAttribute("data-slider-handle", "_1");
-                    }
-                    if (slider.getValue() == 2) {
-                        matchSlider.setAttribute("data-slider-handle", "_2");
-                    }
-
+                    setSliderHandle(slider, m.speculativeResult);
                     slider.on("change", function () {
-                        if (slider.getValue() == 1) {
-                            matchSlider.setAttribute("data-slider-handle", "_1");
-                        }
-                        if (slider.getValue() == 2) {
-                            matchSlider.setAttribute("data-slider-handle", "_2");
-                        }
+                        setSliderHandle(slider, slider.getValue());
                         recalculateAndRedraw(4);
                     });
                     slider.on("slideStop", function () {
@@ -393,6 +429,11 @@
                         row.classList.add("changed");
                     }
                 });
+            }
+
+            function setSliderHandle(slider, score) {
+                slider.handle1.className = "slider-handle min-slider-handle custom";
+                slider.handle1.classList.add("handle-" + (score == -0.5 ? "not-played" : score.toString().replace(".", "-")) + "-score");
             }
 
             function drawStandings(group) {
