@@ -14,7 +14,7 @@
         <link href="bootstrap-slider/bootstrap-slider.min.css" rel="stylesheet">
         <script src="bootstrap-slider/bootstrap-slider.min.js"></script>
 
-        <style>            
+        <style>
             tr.changed {
                 background: #f0f8ff;
             }
@@ -46,72 +46,72 @@
             }
 
             .handle-not-played-score {
-                content: url(scoreHandles//notPlayed.png);
+                content: url(scoreHandles/notPlayed.png);
             }
 
             .handle-0-score {
-                content: url(scoreHandles//0.png);
+                content: url(scoreHandles/0.png);
             }
 
             .handle-0-5-score {
-                content: url(scoreHandles//0.5.png);
+                content: url(scoreHandles/0.5.png);
             }
 
             .handle-1-score {
-                content: url(scoreHandles//1.png);
+                content: url(scoreHandles/1.png);
             }            
 
             .handle-1-5-score {
-                content: url(scoreHandles//1.5.png);
+                content: url(scoreHandles/1.5.png);
             }                        
 
             .handle-2-score {
-                content: url(scoreHandles//2.png);
+                content: url(scoreHandles/2.png);
             }                        
 
             .handle-2-5-score {
-                content: url(scoreHandles//2.5.png);
+                content: url(scoreHandles/2.5.png);
             }                
 
             .handle-3-score {
-                content: url(scoreHandles//3.png);
+                content: url(scoreHandles/3.png);
             }              
 
             .handle-3-5-score {
-                content: url(scoreHandles//3.5.png);
+                content: url(scoreHandles/3.5.png);
             }                
 
             .handle-4-score {
-                content: url(scoreHandles//4.png);
+                content: url(scoreHandles/4.png);
             }              
 
             .handle-4-5-score {
-                content: url(scoreHandles//4.5.png);
+                content: url(scoreHandles/4.5.png);
             }                
 
             .handle-5-score {
-                content: url(scoreHandles//5.png);
+                content: url(scoreHandles/5.png);
             }              
 
             .handle-5-5-score {
-                content: url(scoreHandles//5.5.png);
+                content: url(scoreHandles/5.5.png);
             }                
 
             .handle-6-score {
-                content: url(scoreHandles//6.png);
+                content: url(scoreHandles/6.png);
             }
         </style>
 
         <script type="text/javascript">
-            const MIN_PLAYERS = 2;
-                    const MAX_PLAYERS = 8;
-                    const GAMES_PER_MATCH = 6;
-                    const SERVLET_URL = "/JSONServlet";
-                    const REQUEST_TIMEOUT = 5000;
-                    const RANK_PICS_PATH = "rankpics";
-                    const MATCH_NOT_PLAYED = - 0.5;
-                    const MATCH_NOT_PLAYED_STRING = "Not played";
-                    var currentGroup;
+            var MIN_PLAYERS = 2;
+            var MAX_PLAYERS = 8;
+            var GAMES_PER_MATCH = 6;
+            var SERVLET_URL = "/JSONServlet";
+            var REQUEST_TIMEOUT = 5000;
+            var RANK_PICS_PATH = "rankpics";
+            var MATCH_NOT_PLAYED = -0.5;
+            var MATCH_NOT_PLAYED_STRING = "Not played";
+            var currentGroup;
             var standings;
 
 
@@ -139,7 +139,6 @@
 
             function loadStandingsFromServer() {
                 var xmlhttp = new XMLHttpRequest();
-                xmlhttp.timeout = REQUEST_TIMEOUT;
                 xmlhttp.ontimeout = function () {
                     document.getElementById("helloLayer").style.display = "none";
                     document.getElementById("mainLayer").style.display = "block";
@@ -430,7 +429,7 @@
             }
 
             function setSliderHandle(slider, score) {
-                slider.handle1.className = "slider-handle min-slider-handle custom";
+                slider.handle1.className = slider.handle1.className.replace(/(?:^|\s)handle-.*-score(?!\S)/g, "");
                 slider.handle1.classList.add("handle-" + (score == -0.5 ? "not-played" : score.toString().replace(".", "-")) + "-score");
             }
 
@@ -443,7 +442,7 @@
                 for (var i = 0; i < group.players.length; i++) {
                     var p = group.players[i];
                     var row = playersTable.insertRow(i + 1);
-                    row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "\\rank" + (i + 1) + ".png\">";
+                    row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "/rank" + (i + 1) + ".png\">";
                     row.insertCell(1).innerHTML = p.name;
                     row.insertCell(2).innerHTML = p.average;
                     row.insertCell(3).innerHTML = p.points.toFixed(1);
