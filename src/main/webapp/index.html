@@ -1,12 +1,123 @@
+<!DOCTYPE html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>League calculator</title>
+
+        <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+        <script src="jquery.min.js"></script>
+        <script src="bootstrap/js/bootstrap.min.js"></script>
+
+        <link href="bootstrap-slider/bootstrap-slider.min.css" rel="stylesheet">
+        <script src="bootstrap-slider/bootstrap-slider.min.js"></script>
+
+        <style>
+            tr.changed {
+                background: #f0f8ff;
+            }
+
+            td.highlight {
+                color: #8CC101;
+            }
+
+            .matchResultUnchanged {
+                visibility: hidden;
+            }
+
+            .matchResultChanged {
+            }
+
+            .matchResultChanged:hover {
+                color: #8CC101;
+                cursor: pointer;
+            }            
+
+            .slider-selection {
+                background: #BABABA;
+            }
+
+            .slider-handle.custom {
+                border-style:none;
+                box-shadow:none;
+            }            
+
+            .slider-handle.custom::before {
+                position:absolute;
+                content: '';
+                width:30px;
+                height:30px;                
+            }
+
+            .handle-not-played-score::before {                
+                background:url(scoreHandles/notPlayed.png) no-repeat; overflow: auto;                
+            }
+
+            .handle-0-score::before {
+                background: url(scoreHandles/0.png) no-repeat; overflow: auto;
+            }
+
+            .handle-0-5-score::before {
+                background: url(scoreHandles/0.5.png) no-repeat; overflow: auto;
+            }
+
+            .handle-1-score::before {
+                background: url(scoreHandles/1.png) no-repeat; overflow: auto;
+            }            
+
+            .handle-1-5-score::before {
+                background: url(scoreHandles/1.5.png) no-repeat; overflow: auto;
+            }                        
+
+            .handle-2-score::before {
+                background: url(scoreHandles/2.png) no-repeat; overflow: auto;
+            }                        
+
+            .handle-2-5-score::before {
+                background: url(scoreHandles/2.5.png) no-repeat; overflow: auto;
+            }                
+
+            .handle-3-score::before {
+                background: url(scoreHandles/3.png) no-repeat; overflow: auto;
+            }              
+
+            .handle-3-5-score::before {
+                background: url(scoreHandles/3.5.png) no-repeat; overflow: auto;
+            }                
+
+            .handle-4-score::before {
+                background: url(scoreHandles/4.png) no-repeat; overflow: auto;
+            }              
+
+            .handle-4-5-score::before {
+                background: url(scoreHandles/4.5.png) no-repeat; overflow: auto;
+            }                
+
+            .handle-5-score::before {
+                background: url(scoreHandles/5.png) no-repeat; overflow: auto;
+            }              
+
+            .handle-5-5-score::before {
+                background: url(scoreHandles/5.5.png) no-repeat; overflow: auto;
+            }                
+
+            .handle-6-score::before {
+                background: url(scoreHandles/6.png) no-repeat; overflow: auto;
+            }
+        </style>
+
         <script type="text/javascript">
-            const MIN_PLAYERS = 2;
-                    const MAX_PLAYERS = 8;
-                    const GAMES_PER_MATCH = 6;
-                    const SERVLET_URL = "/JSONServlet";
-                    const REQUEST_TIMEOUT = 5000;
-                    var currentGroup;
+            var MIN_PLAYERS = 2;
+            var MAX_PLAYERS = 8;
+            var GAMES_PER_MATCH = 6;
+            var SERVLET_URL = "/JSONServlet";
+            var REQUEST_TIMEOUT = 5000;
+            var RANK_PICS_PATH = "rankpics";
+            var MATCH_NOT_PLAYED = -0.5;
+            var MATCH_NOT_PLAYED_STRING = "Not played";
+            var currentGroup;
             var standings;
 
 
@@ -17,23 +128,13 @@
                     if (standings[i].name == groupName) {
                         currentGroup = standings[i];
                         initGroup(currentGroup);
-                        recalculateAndRedraw(true);
+                        recalculateAndRedraw(1);
                     }
                 }
             }
 
             function fillGroupSelector() {
-                var select = document.createElement("select");
-                select.onchange = groupSelected;
-                select.id = "groupSelect";
-                document.getElementById('userInput').innerHTML = "";
-                document.getElementById('userInput').appendChild(select);
-                var placeholderOption = document.createElement("option");
-                placeholderOption.value = "";
-                placeholderOption.text = "Select your group";
-                placeholderOption.selected = true;
-                placeholderOption.disabled = true;
-                select.appendChild(placeholderOption);
+                var select = document.getElementById("groupSelect");
                 standings.forEach(function (g) {
                     var option = document.createElement("option");
                     option.value = g.name;
@@ -44,20 +145,31 @@
 
             function loadStandingsFromServer() {
                 var xmlhttp = new XMLHttpRequest();
-                xmlhttp.timeout = REQUEST_TIMEOUT;
                 xmlhttp.ontimeout = function () {
+                    document.getElementById("helloLayer").style.display = "none";
+                    document.getElementById("mainLayer").style.display = "block";
+                    document.getElementById("noConnection").style.display = "block";
                     document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may enter player names manually.";
-                    drawCustomGroupForm();
                 };
                 xmlhttp.onload = function () {
+                    document.getElementById("helloLayer").style.display = "none";
+                    document.getElementById("mainLayer").style.display = "block";
                     if (xmlhttp.readyState === 4) {
                         if (xmlhttp.status === 200) {
-                            standings = JSON.parse(xmlhttp.responseText);
-                            fillGroupSelector();
+                            try {
+                                standings = JSON.parse(xmlhttp.responseText);
+                                fillGroupSelector();
+                                document.getElementById("connectionEstablished").style.display = "block";
+                            }
+                            catch (err) {
+                                document.getElementById("noConnection").style.display = "block";
+                                console.error(err.message);
+                                document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
+                            }
                         } else {
+                            document.getElementById("noConnection").style.display = "block";
                             console.error(xmlhttp.statusText);
                             document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
-                            drawCustomGroupForm();
                         }
                     }
                 };
@@ -83,7 +195,7 @@
                                 var m = new Object();
                                 m.p1 = pA.name;
                                 m.p2 = pB.name;
-                                m.actualResult = "Not played";
+                                m.actualResult = MATCH_NOT_PLAYED;
                                 group.matches.push(m);
                             }
                         }
@@ -107,31 +219,47 @@
                 });
             }
 
-            function recalculateAndRedraw(reset) {
+            function resetMatch(match) {
+                match.speculativeResult = match.actualResult;
+                recalculateAndRedraw(3);
+            }
+
+            function recalculateAndRedraw(mode) {
+                /*
+                 * mode
+                 * 1: reset all
+                 * 2: do not reset matches
+                 * 3: do not parse matches 
+                 * 4: do not redraw matches
+                 * 
+                 * That code is awful, it'll be gone after i start using angular with this thing
+                 */
                 var group = currentGroup;
                 resetPlayers(group);
-                if (reset)
-                    resetMatches(group)
-                parseMatchesFromHTML(group);
+                if (mode == 1)
+                    resetMatches(group);
+                if (mode != 3)
+                    parseMatchesFromHTML(group);
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
-                sortMatches(group);
-                drawMatches(group);
+                document.getElementById("dataDiv").style.display = "block";
+                if (mode != 4) {
+                    sortMatches(group);
+                    drawMatches(group);
+                }
                 drawStandings(group);
             }
 
             function parseMatchesFromHTML(group) {
-                var matchesTable = document.getElementById('matchesTable');
-                if (matchesTable != null) {
-                    for (var i = 0; i < matchesTable.rows.length; i++) {
-                        var matchResultElement = matchesTable.rows[i].cells[1].childNodes[0];
+                var matchesTable = document.getElementById("matchesTable");
+                for (var i = 0; i < matchesTable.rows.length; i++) {
+                    var matchResultElement = matchesTable.rows[i].cells[1];
 
-                        for (var j = 0; j < group.matches.length; j++) {
-                            var m = group.matches[j];
-                            if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
-                                m.speculativeResult = matchResultElement.value;
-                                break;
-                            }
+                    for (var j = 0; j < group.matches.length; j++) {
+                        var m = group.matches[j];
+                        if (m.p1 == matchResultElement.p1 && m.p2 == matchResultElement.p2) {
+                            m.speculativeResult = matchResultElement.childNodes[0].textContent == MATCH_NOT_PLAYED_STRING ? MATCH_NOT_PLAYED : matchResultElement.childNodes[0].textContent;
+                            break;
                         }
                     }
                 }
@@ -143,7 +271,7 @@
                     for (var j = 0; j < group.matches.length; j++) {
                         var m = group.matches[j];
                         if (m.p1 == p.name || m.p2 == p.name) {
-                            if (m.speculativeResult != "Not played") {
+                            if (m.speculativeResult != MATCH_NOT_PLAYED) {
                                 p.points += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - m.speculativeResult)) * 1;
                                 p.matchesPlayed++;
                                 p.average = p.matchesPlayed == 0 ? "-" : (p.points / p.matchesPlayed).toFixed(1);
@@ -159,7 +287,7 @@
                         if (j != i && p.points == group.players[j].points) {
                             for (var k = 0; k < group.matches.length; k++) {
                                 var m = group.matches[k];
-                                if (m.speculativeResult != "Not played" &&
+                                if (m.speculativeResult != MATCH_NOT_PLAYED &&
                                         ((m.p1 == p.name && m.p2 == group.players[j].name) ||
                                                 (m.p2 == p.name && m.p1 == group.players[j].name))) {
                                     p._2nd += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - group.matches[k].speculativeResult)) * 1;
@@ -172,7 +300,7 @@
                     for (var j = 0; j < group.matches.length; j++) {
                         var m = group.matches[j];
                         if (m.p1 == p.name || m.p2 == p.name) {
-                            if (m.speculativeResult != "Not played") {
+                            if (m.speculativeResult != MATCH_NOT_PLAYED) {
                                 var oppName = (m.p1 == p.name) ? m.p2 : m.p1;
                                 var opp;
                                 for (var k = 0; k < group.players.length; k++) {
@@ -227,20 +355,20 @@
                         var swap = m.p1;
                         m.p1 = m.p2;
                         m.p2 = swap;
-                        if (m.actualResult != "Not played") {
+                        if (m.actualResult != MATCH_NOT_PLAYED) {
                             m.actualResult = GAMES_PER_MATCH - m.actualResult;
                         }
-                        if (m.speculativeResult != "Not played") {
+                        if (m.speculativeResult != MATCH_NOT_PLAYED) {
                             m.speculativeResult = GAMES_PER_MATCH - m.speculativeResult;
                         }
                     }
                 });
 
                 group.matches = group.matches.sort(function (a, b) {
-                    if (a.speculativeResult == "Not played" && b.speculativeResult != "Not played") {
+                    if (a.speculativeResult == MATCH_NOT_PLAYED && b.speculativeResult != MATCH_NOT_PLAYED) {
                         return 1;
                     }
-                    if (b.speculativeResult == "Not played" && a.speculativeResult != "Not played") {
+                    if (b.speculativeResult == MATCH_NOT_PLAYED && a.speculativeResult != MATCH_NOT_PLAYED) {
                         return -1;
                     }
 
@@ -253,91 +381,112 @@
             }
 
             function drawMatches(group) {
-                document.getElementById('matchesTableDiv').innerHTML = "<table id=\"matchesTable\"></table>";
-                var matchesTable = document.getElementById('matchesTable');
+                var matchesTable = document.getElementById("matchesTable");
+                matchesTable.innerHTML = "";
 
+
+                var matchSliderCounter = 0;
                 group.matches.forEach(function (m) {
                     var row = matchesTable.insertRow(matchesTable.rows.length);
                     row.insertCell(0).innerHTML = m.p1;
 
-
-                    var results = ["Not played"];
-                    for (var i = 0; i <= GAMES_PER_MATCH; i += 0.5) {
-                        results.push(i);
-                    }
-
                     var cell = row.insertCell(1);
-                    var select = document.createElement("select");
-                    select.p1 = m.p1;
-                    select.p2 = m.p2;
 
-                    cell.appendChild(select);
+                    var matchSlider = document.createElement("input");
+                    matchSlider.type = "text";
+                    matchSlider.id = "matchSlider" + matchSliderCounter++;
+                    matchSlider.setAttribute("data-slider-min", MATCH_NOT_PLAYED);
+                    matchSlider.setAttribute("data-slider-max", GAMES_PER_MATCH);
+                    matchSlider.setAttribute("data-slider-step", 0.5);
+                    matchSlider.setAttribute("data-slider-value", m.speculativeResult);
+                    matchSlider.setAttribute("data-slider-handle", "custom");
+                    cell.p1 = m.p1;
+                    cell.p2 = m.p2;
+                    cell.appendChild(matchSlider);
 
-                    for (var i = 0; i < results.length; i++) {
-                        var option = document.createElement("option");
-                        option.value = results[i];
-                        option.text = results[i];
-                        select.appendChild(option);
+                    var slider = new Slider("#" + matchSlider.id, {
+                        tooltip: 'hide',
+                        formatter: function (value) {
+                            return value == MATCH_NOT_PLAYED ? MATCH_NOT_PLAYED_STRING : value;
+                        }
+                    });
+                    setSliderHandle(slider, m.speculativeResult);
+                    slider.on("change", function () {
+                        setSliderHandle(slider, slider.getValue());
+                        recalculateAndRedraw(4);
+                    });
+                    slider.on("slideStop", function () {
+                        recalculateAndRedraw(2);
+                    });
+
+                    var revertButton = document.createElement("div");
+                    revertButton.innerHTML = '\u2718';
+                    revertButton.onclick = function () {
+                        resetMatch(m);
                     }
-                    select.value = m.speculativeResult;
-                    select.setAttribute('onchange', 'recalculateAndRedraw(false)');
-
-                    row.insertCell(2).innerHTML = m.p2;
+                    revertButton.classList.add(m.actualResult == m.speculativeResult ? "matchResultUnchanged" : "matchResultChanged");
+                    revertButton.style.fontWeight = "bold";
+                    row.insertCell(2).appendChild(revertButton);
+                    row.insertCell(3).innerHTML = m.p2;
+                    if (m.actualResult != m.speculativeResult) {
+                        row.classList.add("changed");
+                    }
                 });
             }
 
-            function drawStandings(group) {
-                var playersTableHTML = "<table id=\"playersTable\"><tr>"
-                        + "<th>rank</th>"
-                        + "<th>name</th>"
-                        + "<th>average</th>"
-                        + "<th>points</th>"
-                        + "<th>#played</th>"
-                        + "<th>2nd</th>"
-                        + "<th>3rd</th>"
-                        + "</tr></table>";
-                document.getElementById('playersTableDiv').innerHTML = playersTableHTML;
+            function setSliderHandle(slider, score) {
+                slider.handle1.className = slider.handle1.className.replace(/(?:^|\s)handle-.*-score(?!\S)/g, "");
+                slider.handle1.classList.add("handle-" + (score == -0.5 ? "not-played" : score.toString().replace(".", "-")) + "-score");
+            }
 
-                var playersTable = document.getElementById('playersTable');
+            function drawStandings(group) {
+                var playersTable = document.getElementById("standingsTable");
                 for (var i = playersTable.rows.length - 1; i > 0; i--) {
                     playersTable.deleteRow(i);
                 }
+
                 for (var i = 0; i < group.players.length; i++) {
                     var p = group.players[i];
                     var row = playersTable.insertRow(i + 1);
-                    row.insertCell(0).innerHTML = i + 1;
+                    row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "/rank" + (i + 1) + ".png\">";
                     row.insertCell(1).innerHTML = p.name;
                     row.insertCell(2).innerHTML = p.average;
-                    row.insertCell(3).innerHTML = p.points;
+                    row.insertCell(3).innerHTML = p.points.toFixed(1);
                     row.insertCell(4).innerHTML = p.matchesPlayed;
-                    row.insertCell(5).innerHTML = p._2nd;
-                    row.insertCell(6).innerHTML = p._3rd;
+                    row.insertCell(5).innerHTML = p._2nd.toFixed(1);
+                    row.insertCell(6).innerHTML = p._3rd.toFixed(2);
+                    row.setAttribute("onmouseover", "mouseOverStandingsRow(\"" + p.name + "\");");
+                    row.setAttribute("onmouseout", "mouseOutOfStandingsRow();");
                 }
             }
 
-            function drawCustomGroupForm() {
-                var customGroupForm = document.createElement("form");
-                var playersTextArea = document.createElement("textarea");
-                playersTextArea.id = "playersTextArea";
-                playersTextArea.placeholder = "Enter player names";
-                playersTextArea.rows = 8;
-                playersTextArea.cols = 50;
-                customGroupForm.appendChild(playersTextArea);
-                var playersSubmitButton = document.createElement("input");
-                playersSubmitButton.type = "button";
-                playersSubmitButton.value = "Submit";
-                playersSubmitButton.onclick = customGroupLaunch;
-                customGroupForm.appendChild(playersSubmitButton);
-                document.getElementById('userInput').innerHTML = "";
-                document.getElementById('userInput').appendChild(customGroupForm);
+            function mouseOverStandingsRow(playerName) {
+                var matchesTable = document.getElementById("matchesTable");
+                for (var i = 0; i < matchesTable.rows.length; i++) {
+                    var matchResultElement = matchesTable.rows[i].cells[1];
+                    if (matchResultElement.p1 == playerName) {
+                        matchesTable.rows[i].cells[0].classList.add("highlight");
+                    }
+                    if (matchResultElement.p2 == playerName) {
+                        matchesTable.rows[i].cells[3].classList.add("highlight");
+                    }
+                }
+            }
+
+            function mouseOutOfStandingsRow() {
+                var matchesTable = document.getElementById("matchesTable");
+                for (var i = 0; i < matchesTable.rows.length; i++) {
+                    matchesTable.rows[i].cells[0].classList.remove("highlight");
+                    matchesTable.rows[i].cells[3].classList.remove("highlight");
+                }
             }
 
             function checkInput() {
-                document.getElementById('errorSpan').innerHTML = "";
+                document.getElementById("errorSpan").innerHTML = "";
 
                 var playersToCheck = new Array();
 
-                var lines = document.getElementById('playersTextArea').value.split('\n');
+                var lines = document.getElementById("playersTextArea").value.split('\n');
                 for (var i = 0; i < lines.length; i++) {
                     if (lines[i] != "") {
                         var alreadyIn = false;
@@ -365,11 +514,12 @@
 
 
             function customGroupLaunch() {
-
+                document.getElementById("dataDiv").style.display = "none";
                 var input = checkInput();
                 if (!input) {
                     return false;
                 }
+                document.getElementById("dataDiv").style.display = "block";
                 currentGroup = new Object;
                 currentGroup.name = "Custom group";
                 currentGroup.players = [];
@@ -396,9 +546,48 @@
 
 
     <body onload="loadStandingsFromServer()">
-        <div id="userInput">Connecting to f.ds...</div>
-        <span id="errorSpan"></span>
-        <div id="matchesTableDiv"></div>
-        <div id="playersTableDiv"></div>
+        <div class="container">
+            <div id="helloLayer">
+                <h1>Connecting to f.ds...</h1>        
+            </div>
+
+            <div id="mainLayer" style="display: none;">
+                <div class="page-header">
+                    <div id="noConnection" style="display: none;">
+                        <form role="form">
+                            <textarea id="playersTextArea" class="form-group" placeholder="Enter player names" rows="8" cols="50"></textarea>
+                            <input type="button" class="form-group" value="Submit" onclick="customGroupLaunch()" />
+                        </form>
+                        <span id="errorSpan"></span>
+                    </div>
+                    <div id="connectionEstablished" style="display: none;">
+                        <select id="groupSelect" onchange="groupSelected()">
+                            <option value="" selected disabled >Select your group</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row" id="dataDiv" style="display: none;">
+                    <div class="col-md-6">
+                        <h3>Matches</h3>
+                        <table id="matchesTable" class="table"></table>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Standings</h3>
+                        <table id="standingsTable" class="table">
+                            <tr>
+                                <th>rank</th>
+                                <th>name</th>
+                                <th>average</th>
+                                <th>points</th>
+                                <th>#played</th>
+                                <th>2nd</th>
+                                <th>3rd</th>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>                        
+        </div>
     </body>
 </html>
