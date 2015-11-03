@@ -51,8 +51,8 @@
                 height:30px;                
             }
 
-            .handle-not-played-score::before {                
-                background:url(scoreHandles/notPlayed.png) no-repeat; overflow: auto;                
+            .handle-not-played-score::before {
+                background:url(scoreHandles/notPlayed.png) no-repeat; overflow: auto;
             }
 
             .handle-0-score::before {
@@ -242,6 +242,7 @@
                     parseMatchesFromHTML(group);
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
+                calculatePlayersRanks(group);
                 document.getElementById("dataDiv").style.display = "block";
                 if (mode != 4) {
                     sortMatches(group);
@@ -316,7 +317,15 @@
                 }
             }
 
-            function comparePlayers(p1, p2) {
+            function calculatePlayersRanks(group) {
+                var currentRank = 1;
+                group.players[0].rank = 1;
+                for (var i = 1; i < group.players.length; i++) {
+                    group.players[i].rank = (comparePlayers(group.players[i], group.players[i - 1], true) == 0 ? currentRank : ++currentRank);
+                }
+            }
+
+            function comparePlayers(p1, p2, noAlphabet) {
                 if (p1.average != p2.average) {
                     if (p1.average == "-")
                         return 1;
@@ -328,7 +337,7 @@
                     if (p1._2nd != p2._2nd) {
                         return p2._2nd - p1._2nd;
                     } else {
-                        if (p1._3rd != p2._3rd) {
+                        if (p1._3rd != p2._3rd || noAlphabet) {
                             return p2._3rd - p1._3rd;
                         } else {
                             return p1.name > p2.name ? 1 : -1;
@@ -351,7 +360,7 @@
 
             function sortMatches(group) {
                 group.matches.forEach(function (m) {
-                    if (comparePlayers(findPlayerByName(group, m.p1), findPlayerByName(group, m.p2)) > 0) {
+                    if (comparePlayers(findPlayerByName(group, m.p1), findPlayerByName(group, m.p2), false) > 0) {
                         var swap = m.p1;
                         m.p1 = m.p2;
                         m.p2 = swap;
@@ -373,9 +382,9 @@
                     }
 
                     if (a.p1 != b.p1) {
-                        return comparePlayers(findPlayerByName(group, a.p1), findPlayerByName(group, b.p1));
+                        return comparePlayers(findPlayerByName(group, a.p1), findPlayerByName(group, b.p1), false);
                     } else {
-                        return comparePlayers(findPlayerByName(group, a.p2), findPlayerByName(group, b.p2));
+                        return comparePlayers(findPlayerByName(group, a.p2), findPlayerByName(group, b.p2), false);
                     }
                 });
             }
@@ -448,7 +457,7 @@
                 for (var i = 0; i < group.players.length; i++) {
                     var p = group.players[i];
                     var row = playersTable.insertRow(i + 1);
-                    row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "/rank" + (i + 1) + ".png\">";
+                    row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "/rank" + p.rank + ".png\">";
                     row.insertCell(1).innerHTML = p.name;
                     row.insertCell(2).innerHTML = p.average;
                     row.insertCell(3).innerHTML = p.points.toFixed(1);
@@ -536,6 +545,7 @@
                 resetMatches(currentGroup);
                 calculatePlayersAttributes(currentGroup);
                 sortPlayers(currentGroup);
+                calculatePlayersRanks(currentGroup);
                 sortMatches(currentGroup);
                 drawMatches(currentGroup);
                 drawStandings(currentGroup);
