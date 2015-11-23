@@ -175,7 +175,8 @@
                         }
                     }
                 };
-                xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
+                //xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
+                xmlhttp.open("GET", "/LeagueCalculator/JSONServlet", true);
                 xmlhttp.send();
             }
 
@@ -203,7 +204,7 @@
                 calculatePlayersAttributes(group);
                 sortPlayers(group);
                 calculatePlayersRanks(group);
-                document.getElementById("dataDiv").style.display = "block";
+                document.getElementById("currentSeasonDiv").style.display = "block";
                 if (mode != 4) {
                     sortMatches(group);
                     drawMatches(group);
@@ -360,12 +361,12 @@
 
 
             function customGroupLaunch() {
-                document.getElementById("dataDiv").style.display = "none";
+                document.getElementById("currentSeasonDiv").style.display = "none";
                 var input = checkInput();
                 if (!input) {
                     return false;
                 }
-                document.getElementById("dataDiv").style.display = "block";
+                document.getElementById("currentSeasonDiv").style.display = "block";
                 currentGroup = new Object;
                 currentGroup.name = "Custom group";
                 currentGroup.players = [];
@@ -388,6 +389,40 @@
                 drawStandings(currentGroup);
             }
 
+            function navigate() {
+                document.getElementById("currentSeasonDiv").style.display = self.parentElement.id == "navCurrentSeason" ? "block" : "none";
+                document.getElementById("leagueStatsDiv").style.display = self.parentElement.id == "navLeagueStats" ? "block" : "none";
+                document.getElementById("playerStatsDiv").style.display = self.parentElement.id == "navPlayerStats" ? "block" : "none";
+
+                /*
+                 document.getElementById("currentSeasonDiv").style.display = "block";                
+                 document.getElementById("leagueStatsDiv").style.display = "none";
+                 document.getElementById("playerStatsDiv").style.display = "none";
+                 document.getElementById("navCurrentSeason").classList.add("active");
+                 document.getElementById("navLeagueStats").classList.remove("active");
+                 document.getElementById("navPlayerStats").classList.remove("active");
+                 */
+            }
+            /*
+             function activateLeagueStats() {
+             document.getElementById("currentSeasonDiv").style.display = "none";
+             document.getElementById("leagueStatsDiv").style.display = "block";
+             document.getElementById("playerStatsDiv").style.display = "none";                
+             document.getElementById("navCurrentSeason").classList.remove("active");
+             document.getElementById("navLeagueStats").classList.add("active");
+             document.getElementById("navPlayerStats").classList.remove("active");                
+             }
+             
+             function activatePlayerStats() {
+             document.getElementById("currentSeasonDiv").style.display = "none";
+             document.getElementById("leagueStatsDiv").style.display = "none";
+             document.getElementById("playerStatsDiv").style.display = "block";
+             document.getElementById("navCurrentSeason").classList.remove("active");
+             document.getElementById("navLeagueStats").classList.remove("active");
+             document.getElementById("navPlayerStats").classList.add("active");                
+             }
+             */
+
         </script>
     </head>
 
@@ -407,14 +442,30 @@
                         </form>
                         <span id="errorSpan"></span>
                     </div>
+
                     <div id="connectionEstablished" style="display: none;">
+                        <nav class="navbar navbar-default">
+                            <div class="container-fluid">
+                                <div class="navbar-header">
+                                    <div class="navbar-brand">League calculator</div>
+                                </div>
+                                <div id="navbar" class="navbar-collapse collapse">
+                                    <ul class="nav navbar-nav">
+                                        <li id="navCurrentSeason" class="active"><a onclick="navigate();">Current season</a></li>
+                                        <li id="navLeagueStats"><a onclick="navigate();">League Statistics</a></li>
+                                        <li id="navPlayerStats"><a onclick="navigate();">Player Statistics</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
                         <select id="groupSelect" onchange="groupSelected()">
                             <option value="" selected disabled >Select your group</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="row" id="dataDiv" style="display: none;">
+                <div class="row" id="currentSeasonDiv" style="display: none;">
                     <div class="col-md-6">
                         <h3>Matches</h3>
                         <table id="matchesTable" class="table"></table>
@@ -433,6 +484,14 @@
                             </tr>
                         </table>
                     </div>
+                </div>
+
+                <div class="row" id="leagueStatsDiv" style="display: none;">
+                    <h3>league stats</h3>
+                </div>
+
+                <div class="row" id="playerStatsDiv" style="display: none;">
+                    <h3>player stats</h3>
                 </div>
             </div>                        
         </div>
