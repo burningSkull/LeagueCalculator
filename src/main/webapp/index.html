@@ -389,10 +389,10 @@
                 drawStandings(currentGroup);
             }
 
-            function navigate() {
-                document.getElementById("currentSeasonDiv").style.display = self.parentElement.id == "navCurrentSeason" ? "block" : "none";
-                document.getElementById("leagueStatsDiv").style.display = self.parentElement.id == "navLeagueStats" ? "block" : "none";
-                document.getElementById("playerStatsDiv").style.display = self.parentElement.id == "navPlayerStats" ? "block" : "none";
+            function navigate(element) {
+                document.getElementById("currentSeasonDiv").style.display = element.id == "navCurrentSeason" ? "block" : "none";
+                document.getElementById("leagueStatsDiv").style.display = element.id == "navLeagueStats" ? "block" : "none";
+                document.getElementById("playerStatsDiv").style.display = element.id == "navPlayerStats" ? "block" : "none";
 
                 /*
                  document.getElementById("currentSeasonDiv").style.display = "block";                
@@ -451,9 +451,9 @@
                                 </div>
                                 <div id="navbar" class="navbar-collapse collapse">
                                     <ul class="nav navbar-nav">
-                                        <li id="navCurrentSeason" class="active"><a onclick="navigate();">Current season</a></li>
-                                        <li id="navLeagueStats"><a onclick="navigate();">League Statistics</a></li>
-                                        <li id="navPlayerStats"><a onclick="navigate();">Player Statistics</a></li>
+                                        <li id="navCurrentSeason" class="active"><a>Current season</a></li>
+                                        <li id="navLeagueStats"><a>League Statistics</a></li>
+                                        <li id="navPlayerStats"><a>Player Statistics</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -495,5 +495,11 @@
                 </div>
             </div>                        
         </div>
+
+        <script>
+            document.getElementById("navCurrentSeason").getElementsByTagName('a').onclick = navigate(document.getElementById("navCurrentSeason"));
+            document.getElementById("navLeagueStats").getElementsByTagName('a').onclick = navigate(document.getElementById("navLeagueStats"));
+            document.getElementById("navPlayerStats").getElementsByTagName('a').onclick = navigate(document.getElementById("navPlayerStats"));
+        </script>
     </body>
 </html>
