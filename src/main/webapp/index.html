@@ -108,6 +108,10 @@
             .handle-6-score::before {
                 background: url(scoreHandles/6.png) no-repeat; overflow: auto;
             }
+
+            .handle-nonstandard-score::before {
+                background: url(scoreHandles/nonStandard.png) no-repeat; overflow: auto;
+            }            
         </style>
 
         <script type="text/javascript">
@@ -226,6 +230,10 @@
                 }
             }
 
+            function isMatchResultStandard(score) {
+                return Number.isInteger(score * 2);
+            }
+
             function drawMatches(group) {
                 var matchesTable = document.getElementById("matchesTable");
                 matchesTable.innerHTML = "";
@@ -251,7 +259,7 @@
                     cell.appendChild(matchSlider);
 
                     var slider = new Slider("#" + matchSlider.id, {
-                        tooltip: 'hide',
+                        tooltip: isMatchResultStandard(m.speculativeResult) ? 'hide' : 'always',
                         formatter: function (value) {
                             return value == MATCH_NOT_PLAYED ? MATCH_NOT_PLAYED_STRING : value;
                         }
@@ -282,7 +290,14 @@
 
             function setSliderHandle(slider, score) {
                 slider.handle1.className = slider.handle1.className.replace(/(?:^|\s)handle-.*-score(?!\S)/g, "");
-                slider.handle1.classList.add("handle-" + (score == -0.5 ? "not-played" : score.toString().replace(".", "-")) + "-score");
+                var handleValue;
+                if (!isMatchResultStandard(score))
+                    handleValue = 'nonstandard'
+                else if (score == -0.5)
+                    handleValue = 'not-played'
+                else
+                    handleValue = score.toString().replace(".", "-");
+                slider.handle1.classList.add("handle-" + handleValue + "-score");
             }
 
             function drawStandings(group) {
