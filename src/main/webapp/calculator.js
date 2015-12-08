@@ -162,3 +162,35 @@ function sortMatches(group) {
         }
     });
 }
+
+function getNofMatchesInSeason(standings) {
+    var nofMatches = 0;
+    standings.forEach(function (g) {
+        nofMatches += g.matches.length;
+    });
+    return nofMatches;
+}
+
+function getNofMatchesCompletedInGroup(group) {
+    var nofMatchesCompleted = 0;
+    group.matches.forEach(function (m) {
+        nofMatchesCompleted += (m.speculativeResult == MATCH_NOT_PLAYED ? 0 : 1);
+    });
+    return nofMatchesCompleted;
+}
+
+function getNofMatchesCompletedInSeason(standings) {
+    var nofMatchesCompleted = 0;
+    standings.forEach(function (g) {
+        nofMatchesCompleted += getNofMatchesCompletedInGroup(g);
+    });
+    return nofMatchesCompleted;
+}
+
+function getNofPlayersInSeason(standings) {
+    var nofPlayers = 0;
+    standings.forEach(function (g) {
+        nofPlayers += g.players.length;
+    });
+    return nofPlayers;
+}

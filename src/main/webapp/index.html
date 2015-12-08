@@ -114,6 +114,15 @@
             .handle-nonstandard-score::before {
                 background: url(scoreHandles/nonStandard.png) no-repeat; overflow: auto;
             }            
+
+            #currentSeasonHeader {
+                font-size: 150%;
+            }
+
+            .statsValue {
+                font-weight: bold;
+                color: #3368c6;
+            }
         </style>
 
         <script type="text/javascript">
@@ -146,6 +155,17 @@
                 for (var i = 0; i < images.length; i++) {
                     (new Image()).src = images[i];
                 }
+            }
+
+            function updateCurrentSeasonStats() {
+                var nofMatchesPlayed = getNofMatchesCompletedInSeason(standings);
+                var nofMatchesOverall = getNofMatchesInSeason(standings);
+
+                document.getElementById("seasonNumberDiv").innerHTML = "not implemented";
+                document.getElementById("nofPlayersDiv").innerHTML = getNofPlayersInSeason(standings);
+                document.getElementById("nofmatchesPlayedDiv").innerHTML = nofMatchesPlayed;
+                document.getElementById("nofmatchesOverallDiv").innerHTML = nofMatchesOverall;
+                document.getElementById("matchesPlayedPercentDiv").innerHTML = Math.round((nofMatchesPlayed * 100) / nofMatchesOverall);
             }
 
             function groupSelected() {
@@ -186,6 +206,13 @@
                             try {
                                 standings = JSON.parse(xmlhttp.responseText);
                                 fillGroupSelector();
+                                standings.forEach(function (g) {
+                                    initGroup(g);
+                                    resetPlayers(g);
+                                    resetMatches(g);
+                                });
+                                updateCurrentSeasonStats();
+
                                 document.getElementById("connectionEstablished").style.display = "block";
                             }
                             catch (err) {
@@ -430,7 +457,7 @@
 
 
     <body onload="onLoad()">
-        <div class="container">
+        <div class="container-fluid">
             <div id="helloLayer">
                 <h1>Connecting to f.ds...</h1>        
             </div>
@@ -445,9 +472,16 @@
                         <span id="errorSpan"></span>
                     </div>
                     <div id="connectionEstablished" style="display: none;">
-                        <select id="groupSelect" onchange="groupSelected()">
-                            <option value="" selected disabled >Select your group</option>
-                        </select>
+                        <div class="row" id="currentSeasonHeader">
+                            <div class="col-md-2">
+                                <select id="groupSelect" onchange="groupSelected()">
+                                    <option value="" selected disabled >Select your group</option>
+                                </select>                                
+                            </div>                            
+                            <div class="col-md-2">Season <span id="seasonNumberDiv" class="statsValue"></span></div>                            
+                            <div class="col-md-2">Players: <span id="nofPlayersDiv" class="statsValue"></span></div>                            
+                            <div class="col-md-4">Matches played: <span id="nofmatchesPlayedDiv" class="statsValue"></span>/<span id="nofmatchesOverallDiv" class="statsValue"></span>(<span id="matchesPlayedPercentDiv" class="statsValue"></span>%)</div>
+                        </div>
                     </div>
                 </div>
 
