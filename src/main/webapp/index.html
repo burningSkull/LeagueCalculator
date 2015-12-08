@@ -108,6 +108,10 @@
             .handle-6-score::before {
                 background: url(scoreHandles/6.png) no-repeat; overflow: auto;
             }
+
+            .handle-nonstandard-score::before {
+                background: url(scoreHandles/nonStandard.png) no-repeat; overflow: auto;
+            }            
         </style>
 
         <script type="text/javascript">
@@ -226,6 +230,10 @@
                 }
             }
 
+            function isMatchResultStandard(score) {
+                return Number.isInteger(score * 2);
+            }
+
             function drawMatches(group) {
                 var matchesTable = document.getElementById("matchesTable");
                 matchesTable.innerHTML = "";
@@ -251,7 +259,8 @@
                     cell.appendChild(matchSlider);
 
                     var slider = new Slider("#" + matchSlider.id, {
-                        tooltip: 'hide',
+                        tooltip: isMatchResultStandard(m.speculativeResult) ? 'hide' : 'always',
+                        precision: 2,
                         formatter: function (value) {
                             return value == MATCH_NOT_PLAYED ? MATCH_NOT_PLAYED_STRING : value;
                         }
@@ -282,7 +291,14 @@
 
             function setSliderHandle(slider, score) {
                 slider.handle1.className = slider.handle1.className.replace(/(?:^|\s)handle-.*-score(?!\S)/g, "");
-                slider.handle1.classList.add("handle-" + (score == -0.5 ? "not-played" : score.toString().replace(".", "-")) + "-score");
+                var handleValue;
+                if (!isMatchResultStandard(score))
+                    handleValue = 'nonstandard'
+                else if (score == -0.5)
+                    handleValue = 'not-played'
+                else
+                    handleValue = score.toString().replace(".", "-");
+                slider.handle1.classList.add("handle-" + handleValue + "-score");
             }
 
             function drawStandings(group) {
@@ -296,8 +312,8 @@
                     var row = playersTable.insertRow(i + 1);
                     row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "/rank" + p.rank + ".png\">";
                     row.insertCell(1).innerHTML = p.name;
-                    row.insertCell(2).innerHTML = p.average;
-                    row.insertCell(3).innerHTML = p.points.toFixed(1);
+                    row.insertCell(2).innerHTML = p.average == "-" ? p.average : (p.average).toFixed(2);
+                    row.insertCell(3).innerHTML = p.points.toFixed(2);
                     row.insertCell(4).innerHTML = p.matchesPlayed;
                     row.insertCell(5).innerHTML = p._2nd.toFixed(1);
                     row.insertCell(6).innerHTML = p._3rd.toFixed(2);
