@@ -49,7 +49,7 @@ function calculatePlayersAttributes(group) {
                 if (m.speculativeResult != MATCH_NOT_PLAYED) {
                     p.points += ((m.p1 == p.name) ? m.speculativeResult : (GAMES_PER_MATCH - m.speculativeResult)) * 1;
                     p.matchesPlayed++;
-                    p.average = p.matchesPlayed == 0 ? "-" : (p.points / p.matchesPlayed).toFixed(1);
+                    p.average = p.matchesPlayed == 0 ? "-" : p.points / p.matchesPlayed;
                 }
             }
         }
@@ -100,13 +100,13 @@ function calculatePlayersRanks(group) {
 }
 
 function comparePlayers(p1, p2, noAlphabet) {
-    if (p1.average != p2.average) {
-        if (p1.average == "-")
+    if (p1.points != p2.points) {
+        if (p1.points == "-")
             return 1;
-        else if (p2.average == "-")
+        else if (p2.points == "-")
             return -1;
         else
-            return p2.average - p1.average;
+            return p2.points - p1.points;
     } else {
         if (p1._2nd != p2._2nd) {
             return p2._2nd - p1._2nd;

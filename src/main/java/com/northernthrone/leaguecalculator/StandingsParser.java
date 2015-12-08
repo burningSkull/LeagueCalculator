@@ -10,6 +10,10 @@ import org.jsoup.select.Elements;
 
 public class StandingsParser {
 
+    private static float fixResult(float input) {        
+        return new Float(Math.round(input * 4)) / 4;
+    }
+    
     private static Match parseMatch(String input) {
         Pattern pattern = Pattern.compile("(?<p1>.*?) - (?<p2>.*?): (?<score>[0-9]*[,\\.]?[0-9]*) - .*");
         Matcher matcher = pattern.matcher(input);
@@ -17,7 +21,7 @@ public class StandingsParser {
             Match match = new Match();
             match.setP1(matcher.group("p1"));
             match.setP2(matcher.group("p2"));
-            match.setActualResult(Float.parseFloat(matcher.group("score").replace(',', '.')));
+            match.setActualResult(fixResult(Float.parseFloat(matcher.group("score").replace(',', '.'))));
             return match;
         } else {
             return null;

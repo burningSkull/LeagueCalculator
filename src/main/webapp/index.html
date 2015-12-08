@@ -260,6 +260,7 @@
 
                     var slider = new Slider("#" + matchSlider.id, {
                         tooltip: isMatchResultStandard(m.speculativeResult) ? 'hide' : 'always',
+                        precision: 2,
                         formatter: function (value) {
                             return value == MATCH_NOT_PLAYED ? MATCH_NOT_PLAYED_STRING : value;
                         }
@@ -311,8 +312,8 @@
                     var row = playersTable.insertRow(i + 1);
                     row.insertCell(0).innerHTML = "<img src=\"" + RANK_PICS_PATH + "/rank" + p.rank + ".png\">";
                     row.insertCell(1).innerHTML = p.name;
-                    row.insertCell(2).innerHTML = p.average;
-                    row.insertCell(3).innerHTML = p.points.toFixed(1);
+                    row.insertCell(2).innerHTML = p.average == "-" ? p.average : (p.average).toFixed(2);
+                    row.insertCell(3).innerHTML = p.points.toFixed(2);
                     row.insertCell(4).innerHTML = p.matchesPlayed;
                     row.insertCell(5).innerHTML = p._2nd.toFixed(1);
                     row.insertCell(6).innerHTML = p._3rd.toFixed(2);
