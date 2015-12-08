@@ -16,6 +16,8 @@
 
         <script src="calculator.js"></script>
 
+        <link rel="icon" type="image/png" href="favicon.jpg">
+
         <style>
             tr.changed {
                 background: #f0f8ff;
@@ -126,6 +128,25 @@
             var currentGroup;
             var standings;
 
+            function onLoad() {
+                preloadImages();
+                loadStandingsFromServer();
+            }
+
+            function preloadImages() {
+                var images = ["scoreHandles/notPlayed.png",
+                    "scoreHandles/0.png", "scoreHandles/0.5.png",
+                    "scoreHandles/1.png", "scoreHandles/1.5.png",
+                    "scoreHandles/2.png", "scoreHandles/2.5.png",
+                    "scoreHandles/3.png", "scoreHandles/3.5.png",
+                    "scoreHandles/4.png", "scoreHandles/4.5.png",
+                    "scoreHandles/5.png", "scoreHandles/5.5.png",
+                    "scoreHandles/6.png",
+                    "scoreHandles/nonStandard.png"];
+                for (var i = 0; i < images.length; i++) {
+                    (new Image()).src = images[i];
+                }
+            }
 
             function groupSelected() {
                 var select = document.getElementById("groupSelect");
@@ -408,7 +429,7 @@
     </head>
 
 
-    <body onload="loadStandingsFromServer()">
+    <body onload="onLoad()">
         <div class="container">
             <div id="helloLayer">
                 <h1>Connecting to f.ds...</h1>        
