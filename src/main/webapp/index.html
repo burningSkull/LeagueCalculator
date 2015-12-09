@@ -279,7 +279,7 @@
             }
 
             function isMatchResultStandard(score) {
-                return Number.isInteger(score * 2);
+                return parseInt(score * 2) === (score * 2);
             }
 
             function drawMatches(group) {
