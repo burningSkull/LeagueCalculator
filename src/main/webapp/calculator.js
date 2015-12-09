@@ -165,7 +165,7 @@ function sortMatches(group) {
 
 function getNofMatchesInSeason(standings) {
     var nofMatches = 0;
-    standings.forEach(function (g) {
+    standings.groups.forEach(function (g) {
         nofMatches += g.matches.length;
     });
     return nofMatches;
@@ -181,7 +181,7 @@ function getNofMatchesCompletedInGroup(group) {
 
 function getNofMatchesCompletedInSeason(standings) {
     var nofMatchesCompleted = 0;
-    standings.forEach(function (g) {
+    standings.groups.forEach(function (g) {
         nofMatchesCompleted += getNofMatchesCompletedInGroup(g);
     });
     return nofMatchesCompleted;
@@ -189,7 +189,7 @@ function getNofMatchesCompletedInSeason(standings) {
 
 function getNofPlayersInSeason(standings) {
     var nofPlayers = 0;
-    standings.forEach(function (g) {
+    standings.groups.forEach(function (g) {
         nofPlayers += g.players.length;
     });
     return nofPlayers;

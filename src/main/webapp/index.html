@@ -161,7 +161,7 @@
                 var nofMatchesPlayed = getNofMatchesCompletedInSeason(standings);
                 var nofMatchesOverall = getNofMatchesInSeason(standings);
 
-                document.getElementById("seasonNumberDiv").innerHTML = "not implemented";
+                document.getElementById("seasonNumberDiv").innerHTML = standings.seasonNumber;
                 document.getElementById("nofPlayersDiv").innerHTML = getNofPlayersInSeason(standings);
                 document.getElementById("nofmatchesPlayedDiv").innerHTML = nofMatchesPlayed;
                 document.getElementById("nofmatchesOverallDiv").innerHTML = nofMatchesOverall;
@@ -171,9 +171,9 @@
             function groupSelected() {
                 var select = document.getElementById("groupSelect");
                 var groupName = select.options[select.selectedIndex].value;
-                for (var i = 0; i < standings.length; i++) {
-                    if (standings[i].name == groupName) {
-                        currentGroup = standings[i];
+                for (var i = 0; i < standings.groups.length; i++) {
+                    if (standings.groups[i].name == groupName) {
+                        currentGroup = standings.groups[i];
                         initGroup(currentGroup);
                         recalculateAndRedraw(1);
                     }
@@ -182,7 +182,7 @@
 
             function fillGroupSelector() {
                 var select = document.getElementById("groupSelect");
-                standings.forEach(function (g) {
+                standings.groups.forEach(function (g) {
                     var option = document.createElement("option");
                     option.value = g.name;
                     option.text = g.name;
@@ -206,7 +206,7 @@
                             try {
                                 standings = JSON.parse(xmlhttp.responseText);
                                 fillGroupSelector();
-                                standings.forEach(function (g) {
+                                standings.groups.forEach(function (g) {
                                     initGroup(g);
                                     resetPlayers(g);
                                     resetMatches(g);
