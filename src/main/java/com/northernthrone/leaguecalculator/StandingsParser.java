@@ -10,10 +10,21 @@ import org.jsoup.select.Elements;
 
 public class StandingsParser {
 
-    private static float fixResult(float input) {        
+    public static class SeasonBoardAttrs {
+
+        int seasonNumber;
+        String boardURL;
+
+        public SeasonBoardAttrs(int seasonNumber, String boardURL) {
+            this.seasonNumber = seasonNumber;
+            this.boardURL = boardURL;
+        }
+    }
+
+    private static float fixResult(float input) {
         return new Float(Math.round(input * 4)) / 4;
     }
-    
+
     private static Match parseMatch(String input) {
         Pattern pattern = Pattern.compile("(?<p1>.*?) - (?<p2>.*?): (?<score>[0-9]*[,\\.]?[0-9]*) - .*");
         Matcher matcher = pattern.matcher(input);
@@ -28,12 +39,19 @@ public class StandingsParser {
         }
     }
 
-    public static String parseLeagueBoard(Document document) {
-        Elements elements = document.getElementsMatchingOwnText("Season [0-9]+ - Standings");
+    public static SeasonBoardAttrs parseLeagueBoard(Document document) {
+        String groupName = "SEASONNUMBER";
+        String patternString = "Season (?<" + groupName + ">[0-9]+) - Standings";
+        Elements elements = document.getElementsMatchingOwnText(patternString);
         if (elements.isEmpty()) {
             return null;
         }
-        return elements.get(0).attr("href");
+        Pattern pattern = Pattern.compile(patternString);
+        Matcher matcher = pattern.matcher(elements.get(0).ownText());
+        if (matcher.matches()) {
+            return new SeasonBoardAttrs(Integer.parseInt(matcher.group(groupName)), elements.get(0).attr("href"));
+        }
+        return null;
     }
 
     public static List<Group> parseStandingsThread(Document document) {

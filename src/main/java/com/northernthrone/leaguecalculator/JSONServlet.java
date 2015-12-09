@@ -31,22 +31,21 @@ public class JSONServlet extends HttpServlet {
         } catch (IOException e) {
             return;
         }
-        String standingsThreadURL = StandingsParser.parseLeagueBoard(document);
-        if (standingsThreadURL == null) {
+
+        StandingsParser.SeasonBoardAttrs boardAttrs = StandingsParser.parseLeagueBoard(document);
+        if (boardAttrs == null) {
             return;
         }
-
-        connection = Jsoup.connect(standingsThreadURL);
+        connection = Jsoup.connect(boardAttrs.boardURL);
         try {
             document = connection.get();
         } catch (IOException e) {
             return;
         }
         List<Group> groups = StandingsParser.parseStandingsThread(document);
+        String jsonOutput = new GsonBuilder().setPrettyPrinting().create().toJson(new Season(boardAttrs.seasonNumber, groups));
 
-        String jsonOutput = new GsonBuilder().setPrettyPrinting().create().toJson(groups);
         //System.out.println(jsonOutput);
-
         /*
          for (Group group : groups) {
          System.out.println(group.getName());
