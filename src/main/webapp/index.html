@@ -126,11 +126,8 @@
         </style>
 
         <script type="text/javascript">
-            var MIN_PLAYERS = 2;
-            var MAX_PLAYERS = 8;
             var GAMES_PER_MATCH = 6;
             var SERVLET_URL = "/JSONServlet";
-            var REQUEST_TIMEOUT = 5000;
             var RANK_PICS_PATH = "rankpics";
             var MATCH_NOT_PLAYED = -0.5;
             var MATCH_NOT_PLAYED_STRING = "Not played";
@@ -195,15 +192,7 @@
 
             function loadStandingsFromServer() {
                 var xmlhttp = new XMLHttpRequest();
-                xmlhttp.ontimeout = function () {
-                    document.getElementById("helloLayer").style.display = "none";
-                    document.getElementById("mainLayer").style.display = "block";
-                    document.getElementById("noConnection").style.display = "block";
-                    document.getElementById('errorSpan').innerHTML = "Can't reach f.ds. You may enter player names manually.";
-                };
                 xmlhttp.onload = function () {
-                    document.getElementById("helloLayer").style.display = "none";
-                    document.getElementById("mainLayer").style.display = "block";
                     if (xmlhttp.readyState === 4) {
                         if (xmlhttp.status === 200) {
                             try {
@@ -215,18 +204,11 @@
                                     resetMatches(g);
                                 });
                                 updateCurrentSeasonStats();
-
-                                document.getElementById("connectionEstablished").style.display = "block";
+                                document.getElementById("helloLayer").style.display = "none";
+                                document.getElementById("mainLayer").style.display = "block";
                             }
                             catch (err) {
-                                document.getElementById("noConnection").style.display = "block";
-                                console.error(err.message);
-                                document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
                             }
-                        } else {
-                            document.getElementById("noConnection").style.display = "block";
-                            console.error(xmlhttp.statusText);
-                            document.getElementById('errorSpan').innerHTML = "Can't connect to server. You may enter player names manually.";
                         }
                     }
                 };
@@ -393,68 +375,6 @@
                     matchesTable.rows[i].cells[3].classList.remove("highlight");
                 }
             }
-
-            function checkInput() {
-                document.getElementById("errorSpan").innerHTML = "";
-
-                var playersToCheck = new Array();
-
-                var lines = document.getElementById("playersTextArea").value.split('\n');
-                for (var i = 0; i < lines.length; i++) {
-                    if (lines[i] != "") {
-                        var alreadyIn = false;
-                        for (var j = 0; j < playersToCheck.length; j++) {
-                            if (playersToCheck[j] == lines[i]) {
-                                alreadyIn = true;
-                                break;
-                            }
-                        }
-                        if (!alreadyIn) {
-                            playersToCheck.push(lines[i]);
-                        }
-                    }
-                }
-                if (playersToCheck.length < MIN_PLAYERS) {
-                    document.getElementById('errorSpan').innerHTML = "Need to have at least " + MIN_PLAYERS + " players.";
-                    return false;
-                }
-                if (playersToCheck.length > MAX_PLAYERS) {
-                    document.getElementById('errorSpan').innerHTML = "Only showing info for the first " + MAX_PLAYERS + " players.";
-                }
-
-                return playersToCheck.slice(0, MAX_PLAYERS);
-            }
-
-
-            function customGroupLaunch() {
-                document.getElementById("dataDiv").style.display = "none";
-                var input = checkInput();
-                if (!input) {
-                    return false;
-                }
-                document.getElementById("dataDiv").style.display = "block";
-                currentGroup = new Object;
-                currentGroup.name = "Custom group";
-                currentGroup.players = [];
-                currentGroup.matches = [];
-
-                input.forEach(function (playerName) {
-                    var player = new Object();
-                    player.name = playerName;
-                    currentGroup.players.push(player);
-                });
-
-                initGroup(currentGroup);
-                resetPlayers(currentGroup);
-                resetMatches(currentGroup);
-                calculatePlayersAttributes(currentGroup);
-                sortPlayers(currentGroup);
-                calculatePlayersRanks(currentGroup);
-                sortMatches(currentGroup);
-                drawMatches(currentGroup);
-                drawStandings(currentGroup);
-            }
-
         </script>
     </head>
 
@@ -467,24 +387,15 @@
 
             <div id="mainLayer" style="display: none;">
                 <div class="jumbotron">
-                    <div id="noConnection" style="display: none;">
-                        <form role="form">
-                            <textarea id="playersTextArea" class="form-group" placeholder="Enter player names" rows="8" cols="50"></textarea>
-                            <input type="button" class="form-group" value="Submit" onclick="customGroupLaunch()" />
-                        </form>
-                        <span id="errorSpan"></span>
-                    </div>
-                    <div id="connectionEstablished" style="display: none;">
-                        <div class="row" id="currentSeasonHeader">
-                            <div class="col-md-2">
-                                <select id="groupSelect" onchange="groupSelected()">
-                                    <option value="" selected disabled >Select your group</option>
-                                </select>                                
-                            </div>                            
-                            <div class="col-md-2">Season <span id="seasonNumberDiv" class="statsValue"></span></div>                            
-                            <div class="col-md-2">Players: <span id="nofPlayersDiv" class="statsValue"></span></div>                            
-                            <div class="col-md-4">Matches: <span id="nofmatchesPlayedDiv" class="statsValue"></span>/<span id="nofmatchesOverallDiv" class="statsValue"></span>(<span id="matchesPlayedPercentDiv" class="statsValue"></span>%)</div>
-                        </div>
+                    <div class="row" id="currentSeasonHeader">
+                        <div class="col-md-2">
+                            <select id="groupSelect" onchange="groupSelected()">
+                                <option value="" selected disabled >Select your group</option>
+                            </select>                                
+                        </div>                            
+                        <div class="col-md-2">Season <span id="seasonNumberDiv" class="statsValue"></span></div>                            
+                        <div class="col-md-2">Players: <span id="nofPlayersDiv" class="statsValue"></span></div>                            
+                        <div class="col-md-4">Matches: <span id="nofmatchesPlayedDiv" class="statsValue"></span>/<span id="nofmatchesOverallDiv" class="statsValue"></span>(<span id="matchesPlayedPercentDiv" class="statsValue"></span>%)</div>
                     </div>
                 </div>
 
