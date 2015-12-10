@@ -83,6 +83,17 @@
                 });
             }
 
+            function navigate(layerDivName) {
+                var layers = ["pageLoading", "currentSeason", "leagueStats", "playerStats"];
+                layers.forEach(function (l) {
+                    document.getElementById(l).style.display = (l == layerDivName ? "block" : "none");
+                    if (l == layerDivName)
+                        document.getElementById(l + "NavLi").classList.add("active");
+                    else if (l != "pageLoading")
+                        document.getElementById(l + "NavLi").classList.remove("active");
+                });
+            }
+
             function loadStandingsFromServer() {
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.onload = function () {
@@ -97,8 +108,7 @@
                                     resetMatches(g);
                                 });
                                 updateCurrentSeasonStats();
-                                document.getElementById("helloLayer").style.display = "none";
-                                document.getElementById("mainLayer").style.display = "block";
+                                navigate("currentSeason");
                             }
                             catch (err) {
                             }
@@ -273,46 +283,74 @@
 
 
     <body onload="onLoad()">
-        <div class="container-fluid">
-            <div id="helloLayer">
-                <h1>Connecting to f.ds...</h1>        
+
+        <nav class="navbar navbar-default">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">League calculator</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li id="currentSeasonNavLi" class="active"><a href="javascript:void(0)" onclick="navigate('currentSeason')">Current season</a></li>
+                        <li id="leagueStatsNavLi" ><a href="javascript:void(0)" onclick="navigate('leagueStats')">League stats</a></li>
+                        <li id="playerStatsNavLi" ><a href="javascript:void(0)" onclick="navigate('playerStats')">Player stats</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="pageLoading">
+            <h1>Connecting to f.ds...</h1>
+        </div>
+
+        <div id="currentSeason" style="display: none;">
+            <div class="jumbotron">
+                <div class="row" id="currentSeasonHeader">
+                    <div class="col-md-2">
+                        <select id="groupSelect" onchange="groupSelected()">
+                            <option value="" selected disabled >Select your group</option>
+                        </select>                                
+                    </div>                            
+                    <div class="col-md-2">Season <span id="seasonNumberDiv" class="statsValue"></span></div>                            
+                    <div class="col-md-2">Players: <span id="nofPlayersDiv" class="statsValue"></span></div>                            
+                    <div class="col-md-4">Matches: <span id="nofmatchesPlayedDiv" class="statsValue"></span>/<span id="nofmatchesOverallDiv" class="statsValue"></span>(<span id="matchesPlayedPercentDiv" class="statsValue"></span>%)</div>
+                </div>
             </div>
 
-            <div id="mainLayer" style="display: none;">
-                <div class="jumbotron">
-                    <div class="row" id="currentSeasonHeader">
-                        <div class="col-md-2">
-                            <select id="groupSelect" onchange="groupSelected()">
-                                <option value="" selected disabled >Select your group</option>
-                            </select>                                
-                        </div>                            
-                        <div class="col-md-2">Season <span id="seasonNumberDiv" class="statsValue"></span></div>                            
-                        <div class="col-md-2">Players: <span id="nofPlayersDiv" class="statsValue"></span></div>                            
-                        <div class="col-md-4">Matches: <span id="nofmatchesPlayedDiv" class="statsValue"></span>/<span id="nofmatchesOverallDiv" class="statsValue"></span>(<span id="matchesPlayedPercentDiv" class="statsValue"></span>%)</div>
-                    </div>
+            <div class="row" id="dataDiv" style="display: none;">
+                <div class="col-md-6">
+                    <h3>Matches</h3>
+                    <table id="matchesTable" class="table"></table>
                 </div>
+                <div class="col-md-6">
+                    <h3>Standings</h3>
+                    <table id="standingsTable" class="table">
+                        <tr>
+                            <th>rank</th>
+                            <th>name</th>
+                            <th>average</th>
+                            <th>points</th>
+                            <th>#played</th>
+                            <th>2nd</th>
+                            <th>3rd</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-                <div class="row" id="dataDiv" style="display: none;">
-                    <div class="col-md-6">
-                        <h3>Matches</h3>
-                        <table id="matchesTable" class="table"></table>
-                    </div>
-                    <div class="col-md-6">
-                        <h3>Standings</h3>
-                        <table id="standingsTable" class="table">
-                            <tr>
-                                <th>rank</th>
-                                <th>name</th>
-                                <th>average</th>
-                                <th>points</th>
-                                <th>#played</th>
-                                <th>2nd</th>
-                                <th>3rd</th>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-            </div>                        
+        <div id="leagueStats" style="display: none;">
+            <h1>League stats</h1>
+        </div>
+
+        <div id="playerStats" style="display: none;">
+            <h1>Player stats</h1>
         </div>
     </body>
 </html>
