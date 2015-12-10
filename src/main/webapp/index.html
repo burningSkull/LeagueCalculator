@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title>League calculator</title>
+        <link rel="icon" type="image/png" href="favicon.jpg">
 
         <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
         <script src="jquery.min.js"></script>
@@ -15,115 +16,7 @@
         <script src="bootstrap-slider/bootstrap-slider.min.js"></script>
 
         <script src="calculator.js"></script>
-
-        <link rel="icon" type="image/png" href="favicon.jpg">
-
-        <style>
-            tr.changed {
-                background: #f0f8ff;
-            }
-
-            td.highlight {
-                color: #8CC101;
-            }
-
-            .matchResultUnchanged {
-                visibility: hidden;
-            }
-
-            .matchResultChanged {
-            }
-
-            .matchResultChanged:hover {
-                color: #8CC101;
-                cursor: pointer;
-            }            
-
-            .slider-selection {
-                background: #BABABA;
-            }
-
-            .slider-handle.custom {
-                border-style:none;
-                box-shadow:none;
-            }            
-
-            .slider-handle.custom::before {
-                position:absolute;
-                content: '';
-                width:30px;
-                height:30px;                
-            }
-
-            .handle-not-played-score::before {
-                background:url(scoreHandles/notPlayed.png) no-repeat; overflow: auto;
-            }
-
-            .handle-0-score::before {
-                background: url(scoreHandles/0.png) no-repeat; overflow: auto;
-            }
-
-            .handle-0-5-score::before {
-                background: url(scoreHandles/0.5.png) no-repeat; overflow: auto;
-            }
-
-            .handle-1-score::before {
-                background: url(scoreHandles/1.png) no-repeat; overflow: auto;
-            }            
-
-            .handle-1-5-score::before {
-                background: url(scoreHandles/1.5.png) no-repeat; overflow: auto;
-            }                        
-
-            .handle-2-score::before {
-                background: url(scoreHandles/2.png) no-repeat; overflow: auto;
-            }                        
-
-            .handle-2-5-score::before {
-                background: url(scoreHandles/2.5.png) no-repeat; overflow: auto;
-            }                
-
-            .handle-3-score::before {
-                background: url(scoreHandles/3.png) no-repeat; overflow: auto;
-            }              
-
-            .handle-3-5-score::before {
-                background: url(scoreHandles/3.5.png) no-repeat; overflow: auto;
-            }                
-
-            .handle-4-score::before {
-                background: url(scoreHandles/4.png) no-repeat; overflow: auto;
-            }              
-
-            .handle-4-5-score::before {
-                background: url(scoreHandles/4.5.png) no-repeat; overflow: auto;
-            }                
-
-            .handle-5-score::before {
-                background: url(scoreHandles/5.png) no-repeat; overflow: auto;
-            }              
-
-            .handle-5-5-score::before {
-                background: url(scoreHandles/5.5.png) no-repeat; overflow: auto;
-            }                
-
-            .handle-6-score::before {
-                background: url(scoreHandles/6.png) no-repeat; overflow: auto;
-            }
-
-            .handle-nonstandard-score::before {
-                background: url(scoreHandles/nonStandard.png) no-repeat; overflow: auto;
-            }            
-
-            #currentSeasonHeader {
-                font-size: 150%;
-            }
-
-            .statsValue {
-                font-weight: bold;
-                color: #3368c6;
-            }
-        </style>
+        <link href="calculator.css" rel="stylesheet">
 
         <script type="text/javascript">
             var GAMES_PER_MATCH = 6;
