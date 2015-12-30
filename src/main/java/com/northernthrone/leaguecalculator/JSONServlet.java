@@ -1,6 +1,12 @@
 package com.northernthrone.leaguecalculator;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -17,6 +23,7 @@ import org.jsoup.nodes.Document;
 public class JSONServlet extends HttpServlet {
 
     private static final String leagueBoardURL = "http://forum.dominionstrategy.com/index.php?board=60.0";
+    private static final String seasonsFileName = "/seasons.json";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -43,7 +50,28 @@ public class JSONServlet extends HttpServlet {
             return;
         }
         List<Group> groups = StandingsParser.parseStandingsThread(document);
-        String jsonOutput = new GsonBuilder().setPrettyPrinting().create().toJson(new Season(boardAttrs.seasonNumber, groups));
+        List<Season> seasons;
+        Season currentSeason = new Season(boardAttrs.seasonNumber, groups);
+        try (BufferedReader br = new BufferedReader(new FileReader(seasonsFileName))) {
+            seasons = new Gson().fromJson(br, new TypeToken<List<Season>>() {
+            }.getType());
+        } catch (Exception e) {
+            System.err.println(e);
+            return;
+        }
+        if (seasons.get(0).getSeasonNumber() == currentSeason.getSeasonNumber()) {
+            seasons.set(0, currentSeason);
+            System.out.println("Replacing");
+        } else {
+            seasons.add(0, currentSeason);
+            System.out.println("Adding");
+        }
+        String seasonsJson = new GsonBuilder().setPrettyPrinting().create().toJson(seasons);
+
+        response.setContentType("application/json");
+        try (PrintWriter out = response.getWriter()) {
+            out.println(seasonsJson);
+        }
 
         //System.out.println(jsonOutput);
         /*
@@ -57,13 +85,6 @@ public class JSONServlet extends HttpServlet {
          System.out.println("\t" + match.getP1() + " " + match.getResult() + " - " + (6 - match.getResult()) + " " + match.getP2());
          }
          }
-
          */
-        response.setContentType("application/json");
-
-        try (PrintWriter out = response.getWriter()) {
-            out.println(jsonOutput);
-        }
-
     }
 }

@@ -26,6 +26,7 @@
             var MATCH_NOT_PLAYED_STRING = "Not played";
             var currentGroup;
             var standings;
+            var seasons;
 
             function onLoad() {
                 preloadImages();
@@ -100,7 +101,8 @@
                     if (xmlhttp.readyState === 4) {
                         if (xmlhttp.status === 200) {
                             try {
-                                standings = JSON.parse(xmlhttp.responseText);
+                                seasons = JSON.parse(xmlhttp.responseText);
+                                standings = seasons[0];
                                 fillGroupSelector();
                                 standings.groups.forEach(function (g) {
                                     initGroup(g);
@@ -115,7 +117,8 @@
                         }
                     }
                 };
-                xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
+                //xmlhttp.open("GET", window.location.href + SERVLET_URL, true);
+                xmlhttp.open("GET", "/LeagueCalculator/JSONServlet", true);
                 xmlhttp.send();
             }
 
